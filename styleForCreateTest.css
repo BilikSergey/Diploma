@@ -1,0 +1,168 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    background-color: #f4f4f9;
+    font-family: Arial, sans-serif;
+    overflow-y: scroll;
+    padding-top: 20px;
+}
+
+.dashboard-container {
+    width: 600px;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.add-button-container {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.submit-btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    visibility: hidden;
+}
+
+.add-question-btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.add-question-btn:hover {
+    background-color: #0056b3;
+}
+
+.questions-container {
+    margin-top: 60px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.question-form {
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    text-align: left;
+}
+
+.question-form label {
+    font-weight: bold;
+    color: #333;
+}
+
+.question-form input,
+.question-form select,
+.question-form button {
+    width: 100%;
+    margin-top: 8px;
+    margin-bottom: 12px;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.question-form button {
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.question-form button:hover {
+    background-color: #0056b3;
+}
+
+.options-container {
+    display: flex;
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.true-false-options {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.true-false-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: normal;
+}
+
+.multiple-choice-option {
+    display: flex;
+    align-items: center;
+    margin-top: 5px; /* Відступ між варіантами */
+}
+
+.multiple-choice-option input[type="text"] {
+    flex-grow: 1; /* Займає доступний простір */
+    margin-left: 5px; /* Відступ зліва від чекбокса */
+    margin-right: 5px; /* Зменшений відступ праворуч */
+}
+
+.multiple-choice-option input[type="checkbox"] {
+    margin: 0; /* Прибираємо відступи */
+}
+
+.multiple-choice-option button {
+    background: none;
+    border: none;
+    color: red; /* Колір хрестика */
+    cursor: pointer;
+    font-size: 16px; /* Розмір шрифту для хрестика */
+    padding: 0; /* Прибираємо відступи */
+    width: 24px; /* Фіксована ширина для кнопки видалення */
+    height: 24px; /* Фіксована висота для кнопки видалення */
+}
+
+.score-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.button-container {
+    display: flex;
+    justify-content: space-between; /* або flex-start */
+    margin-top: 20px; /* відстань від інших елементів */
+}

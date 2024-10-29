@@ -1,4 +1,8 @@
 let db;
+const authContainer = document.getElementById('auth-container');
+
+showAuthForm();
+initDatabase();
 
 // Ініціалізація бази даних
 async function initDatabase() {
@@ -74,6 +78,7 @@ function createTables() {
             role TEXT NOT NULL
         );
     `);
+    saveDatabase();
 }
 // Виведення даних через консоль
 function viewDatabase() {
@@ -100,7 +105,6 @@ function dropTable() {
     db.run("DROP TABLE IF EXISTS users;");
     console.log("Table 'users' has been deleted.");
 }
-initDatabase();
 
 // Функція для додавання користувача
 function addUser(username, email, password, role) {
@@ -109,20 +113,25 @@ function addUser(username, email, password, role) {
     console.log("User succesfully added");
 }
 
-const authContainer = document.getElementById('auth-container');
+function findUserByEmail(email) {
+    const stmt = db.prepare("SELECT * FROM users WHERE email = ?");
+    const result = stmt.get([email]);
+    stmt.free();
+    return result;
+}
 
 // Функція для відображення форми авторизації
 function showAuthForm() {
     authContainer.innerHTML = `
-        <h2>Авторизуйтесь</h2>
+        <h2>Authorization</h2>
         <form id="auth-form">
             <label for="email">Email:</label>
-            <input type="text" id="email" name="email" required><br><br>
-            <label for="password">Пароль:</label>
-            <input type="password" id="password" name="password" required><br><br>
-            <button type="submit">Увійти</button>
+            <input type="text" id="email" name="email"><br><br>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password"><br><br>
+            <button id="id_login_button" type="button">Login</button>
         </form>
-        <p>Ще не зареєстровані? <a href="#" id="register-link">Зареєструйтесь тут</a></p>
+        <p>Don't register yet? <a href="#" id="register-link">Registration</a></p>
     `;
     
     // Додаємо обробник для переходу до реєстрації
@@ -130,35 +139,54 @@ function showAuthForm() {
         event.preventDefault();
         showRegisterForm();
     });
+    document.getElementById("id_login_button").addEventListener('click', () =>{
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const user = findUserByEmail(email);
+        switch(true){
+        case(email===""):
+            alert("Fill input 'Email'");
+            break;
+        case (user.length===[].length):
+            alert("User with this email didn't register");
+            break;
+        case(password===""):
+            alert("Fill input 'Password'");
+            break;
+        case(user&&password!==user[3]):
+            alert("Password is not correct");
+            break;
+        case(user[4]==="student"&&password===user[3]):
+            saveUserData(user)
+            window.location.href = 'cabinet_student.html';
+            break;
+        case(user[4]==="teacher"&&password===user[3]):
+            saveUserData(user)
+            window.location.href = 'cabinet_teacher.html';
+            break;
+        }
+    });
 }
-
-
-
-showAuthForm();
 
 // Функція для відображення форми реєстрації
 function showRegisterForm() {
     authContainer.innerHTML = `
-        <h2>Реєстрація</h2>
+        <h2>Registration</h2>
         <form id="register-form">
             <label for="new-name">Name:</label>
-            <input type="text" id="new-name" name="name" required><br><br>
+            <input type="text" id="new-name" name="name"><br><br>
             <label for="new-email">Email:</label>
-            <input type="email" id="new-email" name="email" required 
-            pattern="[A-Za-z0-9]+@[A-Za-z0-9]+[A-Za-z0-9]+" 
-            title="Please enter a valid email address"/><br><br>
-            <label for="new-password">Пароль:</label>
-            <input type="password" id="new-password" name="password" required 
-               pattern="^[A-Za-z\d@$!%*?&]{6,20}$" 
-                title="Password must have 6 symbols at least "/><br><br>
+            <input type="email" id="new-email" name="email"><br><br>
+            <label for="new-password">Password:</label>
+            <input type="password" id="new-password" name="password"><br><br>
             <label for="role">Role:</label>
-            <select id="role" name="role" required>
+            <select id="role" name="role">
                 <option value="student">Student</option>
                 <option value="teacher">Teacher</option>
             </select>
-            <button id="submit" type="button">Submit</button>
+            <button id="submit" type="button">Sign up</button>
         </form>
-        <p>Вже зареєстровані? <a href="#" id="login-link">Увійдіть тут</a></p>
+        <p>Are you registered? <a href="#" id="login-link">Login</a></p>
     `;
     // Додаємо обробник для повернення до авторизації
     document.getElementById('login-link').addEventListener('click', (event) => {
@@ -208,51 +236,24 @@ function showRegisterForm() {
                 break;
         }
     });
-    
-    // if (!checkEmailExists(email)) {
-    //     //додавання користувача в БД
-    //     document.getElementById("submit").addEventListener("click", async function(event) {
-    //         event.preventDefault(); // Запобігаємо стандартному надсиланню форм
-            
-    //             alert("This email is already registered. Please use a different one.");            
-    //             // Додаємо нового користувача до бази
-    //             addUser(username, email, password, role);
-    //             event.target.submit(); // Відправляємо форму, якщо email унікальний
-    //     });
-    // }
-    
-    
-
-    // async function checkEmailExists(email) {
-    //     const stmt = db.prepare("SELECT 1 FROM users WHERE email = ?");
-    //     stmt.bind([email]);
-    //     const exists = stmt.step();
-    //     stmt.free();
-    //     return exists;
-    // }
-
-    // document.getElementById('submit_button_id').addEventListener('click', () => {        
-    //     const username = document.getElementById('new-name').value;
-    //     const email = document.getElementById('new-email').value;
-    //     const password = document.getElementById('new-password').value;
-    //     const role = document.getElementById('role').value;
-
-    //     const stmt = db.prepare("SELECT 1 FROM users WHERE email = ?");
-    //     stmt.bind([email]);
-    //     const emailExists = stmt.step(); // Повертає true, якщо є результат (тобто email існує)
-
-    //     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    //     const checkedEmail = emailRegex.test(email);
-
-    //     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    //     const checkedPass = passwordRegex.test(password);
-
-
-    //             addUser(username, email, password, role);
-    //             event.preventDefault();
-    //             showAuthForm();
-            
-        
-    //  });
-    
 }
+
+// Зберегти дані користувача після авторизації
+function saveUserData(user) {
+    localStorage.setItem("userId", user[1]);
+    localStorage.setItem("userName", user[2]);
+    localStorage.setItem("userEmail", user[3]);
+    localStorage.setItem("userRole", user[4]);
+}
+function getUserData() {
+    return {
+        id: localStorage.getItem("userId"),
+        name: localStorage.getItem("userName"),
+        email: localStorage.getItem("userEmail"),
+        role: localStorage.getItem("userRole")
+    };
+}
+
+
+
+

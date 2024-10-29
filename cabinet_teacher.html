@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <link rel="stylesheet" href="stylesForCabinet.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <h1>Welcome to Your Dashboard</h1>
+        <div class="button-group">
+            <button class="dashboard-btn" onclick="location.href='create_test.html'">Create Test</button>
+            <button class="dashboard-btn" onclick="location.href='view_tests.html'">View Tests</button>
+            <button class="dashboard-btn" onclick="location.href='view_results.html'">View Results</button>
+            <button class="dashboard-btn" onclick="location.href='settings.html'">Settings</button>
+            <button id="id_exit_button" class="dashboard-btn" onclick="">Exit</button>
+        </div>
+    </div>
+    <script>
+        // Отримати дані користувача
+        function getUserData() {
+            return {
+                id: localStorage.getItem("userId"),
+                name: localStorage.getItem("userName"),
+                email: localStorage.getItem("userEmail"),
+                role: localStorage.getItem("userRole")
+            };
+        }
+        
+        document.getElementById("id_exit_button").addEventListener('click', () =>{
+            // Очистити дані при виході
+            clearUserData();
+            function clearUserData() {
+                localStorage.clear();
+                window.location.href = 'welcome.html';
+            }
+        });
+    </script>
+</body>
+</html>
