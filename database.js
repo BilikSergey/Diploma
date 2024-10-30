@@ -4,6 +4,7 @@ const authContainer = document.getElementById('auth-container');
 showAuthForm();
 initDatabase();
 
+
 // Ініціалізація бази даних
 async function initDatabase() {
     const SQL = await initSqlJs({ locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.2/sql-wasm.wasm` });
@@ -29,18 +30,37 @@ async function loadDatabase() {
 
         request.onsuccess = (event) => {
             const db = event.target.result;
-            const transaction = db.transaction(["database"], "readonly");
-            const objectStore = transaction.objectStore("database");
-            const getRequest = objectStore.get(1);
+            const transaction = db.transaction(["usersDatabase", "testsDatabase", "questionsDatabase", "optionsDatabase"], "readwrite");
+            const usersStore = transaction.objectStore("usersDatabase");
+            const testsStore = transaction.objectStore("testsDatabase");
+            const questionsStore = transaction.objectStore("questionsDatabase");
+            const optionsStore = transaction.objectStore("optionsDatabase");
 
-            getRequest.onsuccess = (event) => {
+            const getRequestUsers = usersStore.get(1);
+            const getRequestTests = testsStore.get(1);
+            const getRequestQuestions = questionsStore.get(1);
+            const getRequestOptions = optionsStore.get(1);
+
+            getRequestUsers.onsuccess = (event) => {
+                resolve(event.target.result ? event.target.result.data : null);
+            };
+            getRequestTests.onsuccess = (event) => {
+                resolve(event.target.result ? event.target.result.data : null);
+            };
+            getRequestQuestions.onsuccess = (event) => {
+                resolve(event.target.result ? event.target.result.data : null);
+            };
+            getRequestOptions.onsuccess = (event) => {
                 resolve(event.target.result ? event.target.result.data : null);
             };
         };
 
         request.onupgradeneeded = (event) => {
             const db = event.target.result;
-            db.createObjectStore("database", { keyPath: "id" });
+            db.createObjectStore("usersDatabase", { keyPath: "id" });
+            db.createObjectStore("testsDatabase", { keyPath: "id" });
+            db.createObjectStore("questionsDatabase", { keyPath: "id" });
+            db.createObjectStore("optionsDatabase", { keyPath: "id" });
         };
     });
 }
@@ -56,14 +76,23 @@ async function saveDatabase() {
 
     request.onsuccess = (event) => {
         const db = event.target.result;
-        const transaction = db.transaction(["database"], "readwrite");
-        const objectStore = transaction.objectStore("database");
-        objectStore.put({ id: 1, data: binaryArray });
+        const transaction = db.transaction(["usersDatabase", "testsDatabase", "questionsDatabase", "optionsDatabase"], "readwrite");
+        const usersStore = transaction.objectStore("usersDatabase");
+        const testsStore = transaction.objectStore("testsDatabase");
+        const questionsStore = transaction.objectStore("questionsDatabase");
+        const optionsStore = transaction.objectStore("optionsDatabase");
+        usersStore.put({ id: 1, data: binaryArray });
+        testsStore.put({ id: 1, data: binaryArray });
+        questionsStore.put({ id: 1, data: binaryArray });
+        optionsStore.put({ id: 1, data: binaryArray });
     };
 
     request.onupgradeneeded = (event) => {
         const db = event.target.result;
-        db.createObjectStore("database", { keyPath: "id" });
+        db.createObjectStore("usersDatabase", { keyPath: "id" });
+        db.createObjectStore("testsDatabase", { keyPath: "id" });
+        db.createObjectStore("questionsDatabase", { keyPath: "id" });
+        db.createObjectStore("optionsDatabase", { keyPath: "id" });
     };
 }
 
@@ -77,18 +106,73 @@ function createTables() {
             password TEXT NOT NULL,
             role TEXT NOT NULL
         );
+    `);        
+    db.run(`
+        CREATE TABLE IF NOT EXISTS tests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            title TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        );
     `);
-    saveDatabase();
+    db.run(`
+        CREATE TABLE IF NOT EXISTS questions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            test_id INTEGER,
+            text TEXT NOT NULL,
+            response_type TEXT NOT NULL,
+            rating INTEGER,
+            FOREIGN KEY (test_id) REFERENCES tests(id)
+        );
+    `);
+    db.run(`
+        CREATE TABLE IF NOT EXISTS options (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            question_id INTEGER,
+            text TEXT NOT NULL,
+            is_correct TEXT NOT NULL,
+            FOREIGN KEY (question_id) REFERENCES questions(id)
+        );
+    `);
 }
+
+
+
 // Виведення даних через консоль
 function viewDatabase() {
-    const result = db.exec("SELECT * FROM users;");
-    if (result.length > 0 && result[0].values.length > 0) {
-        result[0].values.forEach(row => {
+    const resultUsers = db.exec("SELECT * FROM users;");
+    const resultTests = db.exec("SELECT * FROM tests;");
+    const resultQuestions = db.exec("SELECT * FROM questions;");
+    const resultOptions = db.exec("SELECT * FROM options;");
+    if (resultUsers.length > 0 && resultUsers[0].values.length > 0) {
+        resultUsers[0].values.forEach(row => {
             console.log(`ID: ${row[0]}, Username: ${row[1]}, Email: ${row[2]}, Password: ${row[3]} Role: ${row[4]}`);
         });
     } else {
         console.log("No users found in the database.");
+    }
+    if (resultTests.length > 0 && resultTests[0].values.length > 0) {
+        resultTests[0].values.forEach(row => {
+              console.log(`ID: ${row[0]}, user_id: ${row[1]}, title: ${row[2]}`);
+        });
+     } else {
+        console.log("No tests found in the database.");
+      }
+
+     if (resultQuestions.length > 0 && resultQuestions[0].values.length > 0) {
+          resultQuestions[0].values.forEach(row => {
+               console.log(`ID: ${row[0]}, test_id: ${row[1]}, text: ${row[2]}, response_type: ${row[3]}, rating: ${row[4]}`);
+        });
+       } else {
+          console.log("No questions found in the database.");
+       }
+
+     if (resultOptions.length > 0 && resultOptions[0].values.length > 0) {
+          resultOptions[0].values.forEach(row => {
+            console.log(`ID: ${row[0]}, question_id: ${row[1]}, text: ${row[2]}, is_correct: ${row[3]}`);
+          });
+    } else {
+        console.log("No options found in the database.");
     }
 }
 
@@ -240,9 +324,10 @@ function showRegisterForm() {
 
 // Зберегти дані користувача після авторизації
 function saveUserData(user) {
-    localStorage.setItem("userId", user[1]);
-    localStorage.setItem("userName", user[2]);
-    localStorage.setItem("userEmail", user[3]);
+    localStorage.setItem("userId", user[0]);
+    localStorage.setItem("userName", user[1]);
+    localStorage.setItem("userEmail", user[2]);
+    localStorage.setItem("userPassword", user[3]);
     localStorage.setItem("userRole", user[4]);
 }
 function getUserData() {
@@ -250,6 +335,7 @@ function getUserData() {
         id: localStorage.getItem("userId"),
         name: localStorage.getItem("userName"),
         email: localStorage.getItem("userEmail"),
+        password: localStorage.getItem("userPassword"),
         role: localStorage.getItem("userRole")
     };
 }
