@@ -117,7 +117,7 @@ function createTables() {
     `);
     db.run(`
         CREATE TABLE IF NOT EXISTS questions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id REAL PRIMARY KEY,
             test_id INTEGER,
             text TEXT NOT NULL,
             response_type TEXT NOT NULL,
@@ -127,123 +127,85 @@ function createTables() {
     `);
     db.run(`
         CREATE TABLE IF NOT EXISTS options (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id REAL PRIMARY KEY,
             question_id INTEGER,
+            option_id INTEGER,
             text TEXT NOT NULL,
-            is_correct TEXT NOT NULL,
-            FOREIGN KEY (question_id) REFERENCES questions(id)
+            is_correct TEXT NOT NULL
         );
     `);
 }
 
+
+
+
         function sendTestIntoDB(){
-            
-        }
-
-        // Функція для додавання тесту
-        function addUser() {
-            getUserData(userData);
-            const testName = document.getElementById("id_input_test_name");
+            const userData = getUserData();
+            const testName = document.getElementById("id_input_test_name").value;
             db.run("INSERT INTO tests (user_id, title) VALUES (?, ?)", [userData.id, testName]);
-
-            
+            addTest();
+            saveDatabase();
+            viewDatabase();
         }
+
+
+        function addTest() {
+            for (let i = 1; i <= questionCount; i++) {
+                const resultTests = db.exec("SELECT * FROM tests;");
+                const test_id = resultTests[0].values.length;
+                const text_question = document.getElementById(`question${i}`).value;
+                let response_type;
+                const rating = document.getElementById(`score${i}`).value;
+                const selectorOptions = document.getElementById(`id-div-multiple-choice-options${i}`);
+                response_type = selectorOptions.style.display === 'block' ? "multiple" : "true/false";
+                const id_test_question = parseFloat(`${test_id}.${i}`); 
+                db.run("INSERT INTO questions (id, test_id, text, response_type, rating) VALUES (?, ?, ?, ?, ?)", [id_test_question, test_id, text_question, response_type, rating]);
+        
+                const form_checkBox = document.querySelector(`#id-div-multiple-choice-options${i}`);
+                const checkboxes = form_checkBox.querySelectorAll('input[type="checkbox"]');
+                const form_of_CheckBox = document.getElementById(`id-div-multiple-choice-options${i}`);
+                if (form_of_CheckBox.style.display === "block") {
+                    for (let j = 1; j <= checkboxes.length; j++) {
+                        const response_text = document.getElementById(`multipleChoiceText${i}${j}[]`).value;
+                        const response_checkBox = document.getElementById(`multipleChoice${i}${j}[]`);
+                        const id_test_option = parseFloat(`${test_id}.${i}${j}`); 
+                        db.run("INSERT INTO options (id, question_id, option_id, text, is_correct) VALUES (?, ?, ?, ?, ?)", [id_test_option, id_test_question, j, response_text, response_checkBox.checked ? "true" : "false"]);
+                    }
+                } else {
+                    for (let j = 1; j <= 2; j++) {
+                        const radio_is_checked_true = document.getElementById(`id_true${i}`);
+                        const radio_is_checked_false = document.getElementById(`id_false${i}`);
+                        const id_test_option = parseFloat(`${test_id}.${i}${j}`); 
+                        switch (true) {
+                            case (j === 1 && radio_is_checked_true.checked):
+                                db.run("INSERT INTO options (id, question_id, option_id, text, is_correct) VALUES (?, ?, ?, ?, ?)", [id_test_option, id_test_question, j, "true", "true"]);
+                                break;
+                            case (j === 1 && !radio_is_checked_true.checked):
+                                db.run("INSERT INTO options (id, question_id, option_id, text, is_correct) VALUES (?, ?, ?, ?, ?)", [id_test_option, id_test_question, j, "true", "false"]);
+                                break;
+                            case (j === 2 && radio_is_checked_false.checked):
+                                db.run("INSERT INTO options (id, question_id, option_id, text, is_correct) VALUES (?, ?, ?, ?, ?)", [id_test_option, id_test_question, j, "false", "true"]);
+                                break;
+                            case (j === 2 && !radio_is_checked_false.checked):
+                                db.run("INSERT INTO options (id, question_id, option_id, text, is_correct) VALUES (?, ?, ?, ?, ?)", [id_test_option, id_test_question, j, "false", "false"]);
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+        
 
         // Отримати дані користувача
-        function getUserData(userData) {
-            userData = {
+        function getUserData() {
+            return {
                 id: localStorage.getItem("userId"),
                 name: localStorage.getItem("userName"),
                 email: localStorage.getItem("userEmail"),
                 password: localStorage.getItem("userPassword"),
                 role: localStorage.getItem("userRole")
             };
-            return userData;
         }
-
-        function addIdInTable () {
-            const request = indexedDB.open("DatabaseDiploma", 3);            
-
-            request.onsuccess = (event) => {
-                const db = event.target.result;
-
-                // Спочатку отримуємо `id` з першої таблиці, наприклад, з таблиці "testsDatabase"
-                const transaction = db.transaction(["usersDatabase", "testsDatabase", "questionsDatabase", "optionsDatabase"], "readwrite");
-                const testsStore = transaction.objectStore("testsDatabase");
-                const questionsStore = transaction.objectStore("questionsDatabase");
-                const optionsStore = transaction.objectStore("optionsDatabase");
-
-                // Шукаємо запис з `id = 1`, але це може бути інший критерій
-                const getRequest = testsStore.openCursor(null, "prev"); 
-
-                for(let i = 1; i>=questionCount;i++)
-                getRequest.onsuccess = (event) => {
-                    const record = event.target.result;
-
-                    if (record) {
-                        const testId = record.id; // Отримуємо `id`, щоб вставити в іншу таблицю
-                        const textId = document.getElementById(`question${i}`);
-                        const selectorOptions = document.getElementById("id-div-multiple-choice-options");
-                        const ratingId = document.getElementById(`score${i}`);
-                        let responseType;
-
-                        if(selectorOptions.style.display == 'block'){
-                            responseType = "multiple";
-                        } else {
-                            responseType = "true/false";
-                        }
-
-                        const newQuestion = {
-                            test_id: testId, // Використовуємо отриманий `id`
-                            text: textId,
-                            response_type: responseType,
-                            rating: ratingId
-                        };
-                        questionsStore.add(newQuestion); // Додаємо новий запис в "questionsDatabase"
-                    }
-                };
-
-                getRequest.onerror = (event) => {
-                    console.error("Помилка при отриманні id з таблиці:", event);
-                };
-
-                const getRequest2 = questionsStore.get(i);
-                getRequest2.onsuccess = (event) => {
-                    const record = event.target.result;
-
-                    if (record) {
-                        const questionId = record.id; // Отримуємо `id`, щоб вставити в іншу таблицю
-                        const textId = document.getElementById(`question${questionCount}`);
-                        const selectorOptions = document.getElementById("id-div-multiple-choice-options");
-                        let responseType;
-                        
-                        for(let i = 1; i>=questionCount;i++){
-                            let response_text;
-                            if(record.response_type=="multiple"){
-                                response_text = document.getElementById(`multipleChoiceText${questionCount}${checkBoxCount}[]`);
-                            } else {
-                                
-                            }
-                            const newOption = {
-                                question_id: questionId, // Використовуємо отриманий `id`
-                                text: textId,
-                                is_correct: ratingId
-                            };
-
-                        }
-                        
-
-                        
-                        questionsStore.add(newQuestion); // Додаємо новий запис в "questionsDatabase"
-                    }
-                };
-            };
-
-            getRequest2.onerror = (event) => {
-                console.error("Помилка відкриття бази даних:", event);
-            };
-        }
-
 
         function addQuestionForm(copyData = null) {
             let checkBoxCount = 1;
@@ -262,6 +224,7 @@ function createTables() {
             const questionInput = document.createElement('input');
             questionInput.type = 'text';
             questionInput.id = `question${questionCount}`;
+            questionInput.name = `question${questionCount}`;
             questionInput.value = copyData ? copyData.question : '';
             questionForm.appendChild(questionInput);
 
@@ -289,17 +252,19 @@ function createTables() {
             // Multiple Choice options
             const multipleChoiceOptions = document.createElement('div');
             multipleChoiceOptions.classList.add('options-container', 'multiple-choice-options');
-            multipleChoiceOptions.id = 'id-div-multiple-choice-options';
+            multipleChoiceOptions.id = `id-div-multiple-choice-options${questionCount}`;
+            // multipleChoiceOptions.name = `name-div-multiple-choice-options${questionCount}`;
             multipleChoiceOptions.style.display = 'none';
 
             if (copyData && copyData.options) {
-                copyData.options.forEach(option => addCheckboxOption(multipleChoiceOptions, checkBoxCount, option));
+                copyData.options.forEach(option => addCheckboxOption(id_checkBox_Fectch, multipleChoiceOptions, checkBoxCount, option));
                 checkBoxCount++;
             }
             const addOptionButton = document.createElement('button');
             addOptionButton.type = 'button';
             addOptionButton.textContent = 'Додати варіант';
-            addOptionButton.onclick = () => {addCheckboxOption(multipleChoiceOptions, checkBoxCount); checkBoxCount++;}
+            const id_checkBox_Fectch = questionCount;
+            addOptionButton.onclick = () => {addCheckboxOption(id_checkBox_Fectch, multipleChoiceOptions, checkBoxCount); checkBoxCount++;}
             multipleChoiceOptions.appendChild(addOptionButton);
             questionForm.appendChild(multipleChoiceOptions);
 
@@ -313,6 +278,7 @@ function createTables() {
 
             const scoreInput = document.createElement('input');
             scoreInput.type = 'number';
+            scoreInput.id = `score${questionCount}`;
             scoreInput.name = `score${questionCount}`;
             scoreInput.onkey = 'return isNumberKey(event)';
             scoreInput.style.width = `65px`;
@@ -365,17 +331,17 @@ function createTables() {
             }
         }
 
-        function addCheckboxOption(container, checkBoxCount, optionText = '') {
+        function addCheckboxOption(id_checkBox_Fectch, container, checkBoxCount, optionText = '') {
             const optionDiv = document.createElement('div');
             optionDiv.classList.add('multiple-choice-option');
         
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
-            checkbox.id = `multipleChoice${questionCount}${checkBoxCount}[]`;
+            checkbox.id = `multipleChoice${id_checkBox_Fectch}${checkBoxCount}[]`;
         
             const optionInput = document.createElement('input');
             optionInput.type = 'text';
-            optionInput.id = `multipleChoiceText${questionCount}${checkBoxCount}[]`;
+            optionInput.id = `multipleChoiceText${id_checkBox_Fectch}${checkBoxCount}[]`;
             optionInput.placeholder = 'Варіант відповіді';
             optionInput.value = optionText; // Якщо є текст варіанту, вставляємо його            
 
@@ -414,32 +380,40 @@ function viewDatabase() {
     const resultQuestions = db.exec("SELECT * FROM questions;");
     const resultOptions = db.exec("SELECT * FROM options;");
     if (resultUsers.length > 0 && resultUsers[0].values.length > 0) {
+        console.log("users Database");
         resultUsers[0].values.forEach(row => {
             console.log(`ID: ${row[0]}, Username: ${row[1]}, Email: ${row[2]}, Password: ${row[3]} Role: ${row[4]}`);
         });
+        console.log("___________________________________________");
     } else {
         console.log("No users found in the database.");
     }
     if (resultTests.length > 0 && resultTests[0].values.length > 0) {
+        console.log("tests Database");
         resultTests[0].values.forEach(row => {
-              console.log(`ID: ${row[0]}, user_id: ${row[1]}, title: ${row[2]}`);
+            console.log(`ID: ${row[0]}, user_id: ${row[1]}, title: ${row[2]}`);
         });
+        console.log("___________________________________________");
      } else {
         console.log("No tests found in the database.");
       }
 
      if (resultQuestions.length > 0 && resultQuestions[0].values.length > 0) {
+        console.log("questions Database");
           resultQuestions[0].values.forEach(row => {
-               console.log(`ID: ${row[0]}, test_id: ${row[1]}, text: ${row[2]}, response_type: ${row[3]}, rating: ${row[4]}`);
+            console.log(`ID: ${row[0]}, test_id: ${row[1]}, text: ${row[2]}, response_type: ${row[3]}, rating: ${row[4]}`);
         });
+        console.log("___________________________________________");
        } else {
           console.log("No questions found in the database.");
        }
 
      if (resultOptions.length > 0 && resultOptions[0].values.length > 0) {
+        console.log("options Database");
           resultOptions[0].values.forEach(row => {
-            console.log(`ID: ${row[0]}, question_id: ${row[1]}, text: ${row[2]}, is_correct: ${row[3]}`);
+            console.log(`ID: ${row[0]}, option_id: ${row[1]} question_id: ${row[2]}, text: ${row[3]}, is_correct: ${row[4]}`);
           });
+          console.log("___________________________________________");
     } else {
         console.log("No options found in the database.");
     }

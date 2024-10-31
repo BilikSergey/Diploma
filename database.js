@@ -117,7 +117,7 @@ function createTables() {
     `);
     db.run(`
         CREATE TABLE IF NOT EXISTS questions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id REAL PRIMARY KEY,
             test_id INTEGER,
             text TEXT NOT NULL,
             response_type TEXT NOT NULL,
@@ -127,11 +127,11 @@ function createTables() {
     `);
     db.run(`
         CREATE TABLE IF NOT EXISTS options (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id REAL PRIMARY KEY,
             question_id INTEGER,
+            option_id INTEGER,
             text TEXT NOT NULL,
-            is_correct TEXT NOT NULL,
-            FOREIGN KEY (question_id) REFERENCES questions(id)
+            is_correct TEXT NOT NULL
         );
     `);
 }
