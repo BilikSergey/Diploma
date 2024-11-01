@@ -117,7 +117,7 @@ function createTables() {
     `);
     db.run(`
         CREATE TABLE IF NOT EXISTS questions (
-            id REAL PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             test_id INTEGER,
             text TEXT NOT NULL,
             response_type TEXT NOT NULL,
@@ -127,16 +127,16 @@ function createTables() {
     `);
     db.run(`
         CREATE TABLE IF NOT EXISTS options (
-            id REAL PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             question_id INTEGER,
-            option_id INTEGER,
+            test_id INTEGER,
             text TEXT NOT NULL,
-            is_correct TEXT NOT NULL
+            is_correct TEXT NOT NULL,
+            FOREIGN KEY (question_id) REFERENCES questions(id),
+            FOREIGN KEY (test_id) REFERENCES tests(id)
         );
     `);
 }
-
-
 
 // Виведення даних через консоль
 function viewDatabase() {
@@ -145,32 +145,40 @@ function viewDatabase() {
     const resultQuestions = db.exec("SELECT * FROM questions;");
     const resultOptions = db.exec("SELECT * FROM options;");
     if (resultUsers.length > 0 && resultUsers[0].values.length > 0) {
+        console.log("users Database");
         resultUsers[0].values.forEach(row => {
             console.log(`ID: ${row[0]}, Username: ${row[1]}, Email: ${row[2]}, Password: ${row[3]} Role: ${row[4]}`);
         });
+        console.log("___________________________________________");
     } else {
         console.log("No users found in the database.");
     }
     if (resultTests.length > 0 && resultTests[0].values.length > 0) {
+        console.log("tests Database");
         resultTests[0].values.forEach(row => {
-              console.log(`ID: ${row[0]}, user_id: ${row[1]}, title: ${row[2]}`);
+            console.log(`ID: ${row[0]}, user_id: ${row[1]}, title: ${row[2]}`);
         });
-     } else {
+        console.log("___________________________________________");
+    } else {
         console.log("No tests found in the database.");
-      }
+    }
 
-     if (resultQuestions.length > 0 && resultQuestions[0].values.length > 0) {
-          resultQuestions[0].values.forEach(row => {
-               console.log(`ID: ${row[0]}, test_id: ${row[1]}, text: ${row[2]}, response_type: ${row[3]}, rating: ${row[4]}`);
+    if (resultQuestions.length > 0 && resultQuestions[0].values.length > 0) {
+        console.log("questions Database");
+        resultQuestions[0].values.forEach(row => {
+            console.log(`ID: ${row[0]}, test_id: ${row[1]}, text: ${row[2]}, response_type: ${row[3]}, rating: ${row[4]}`);
         });
-       } else {
-          console.log("No questions found in the database.");
-       }
+        console.log("___________________________________________");
+    } else {
+        console.log("No questions found in the database.");
+    }
 
-     if (resultOptions.length > 0 && resultOptions[0].values.length > 0) {
-          resultOptions[0].values.forEach(row => {
-            console.log(`ID: ${row[0]}, question_id: ${row[1]}, text: ${row[2]}, is_correct: ${row[3]}`);
-          });
+    if (resultOptions.length > 0 && resultOptions[0].values.length > 0) {
+        console.log("options Database");
+        resultOptions[0].values.forEach(row => {
+            console.log(`ID: ${row[0]}, question_id: ${row[1]} test_id: ${row[2]}, text: ${row[3]}, is_correct: ${row[4]}`);
+        });
+        console.log("___________________________________________");
     } else {
         console.log("No options found in the database.");
     }
@@ -207,15 +215,15 @@ function findUserByEmail(email) {
 // Функція для відображення форми авторизації
 function showAuthForm() {
     authContainer.innerHTML = `
-        <h2>Authorization</h2>
+        <h2>Login</h2>
         <form id="auth-form">
             <label for="email">Email:</label>
-            <input type="text" id="email" name="email"><br><br>
+            <input type="text" id="email" name="email" class="styled-input"><br><br>
             <label for="password">Password:</label>
-            <input type="password" id="password" name="password"><br><br>
-            <button id="id_login_button" type="button">Login</button>
+            <input type="password" id="password" name="password" class="styled-input"><br><br>
+            <button id="id_login_button" class="submit_btn" type="button">Log in</button>
         </form>
-        <p>Don't register yet? <a href="#" id="register-link">Registration</a></p>
+        <p>Don't register yet? <a href="#" id="register-link">Sign up</a></p>
     `;
     
     // Додаємо обробник для переходу до реєстрації
@@ -229,16 +237,16 @@ function showAuthForm() {
         const user = findUserByEmail(email);
         switch(true){
         case(email===""):
-            alert("Fill input 'Email'");
+        showErrorMessage("Field 'Email' cannot be empty");
             break;
         case (user.length===[].length):
-            alert("User with this email didn't register");
+            showErrorMessage("User with this email didn't register");
             break;
         case(password===""):
-            alert("Fill input 'Password'");
+            showErrorMessage("Field 'password' cannot be empty");
             break;
         case(user&&password!==user[3]):
-            alert("Password is not correct");
+            showErrorMessage("Password is not correct");
             break;
         case(user[4]==="student"&&password===user[3]):
             saveUserData(user)
@@ -255,20 +263,20 @@ function showAuthForm() {
 // Функція для відображення форми реєстрації
 function showRegisterForm() {
     authContainer.innerHTML = `
-        <h2>Registration</h2>
+        <h2>Sign up</h2>
         <form id="register-form">
             <label for="new-name">Name:</label>
-            <input type="text" id="new-name" name="name"><br><br>
+            <input type="text" id="new-name" name="name" class="styled-input"><br><br>
             <label for="new-email">Email:</label>
-            <input type="email" id="new-email" name="email"><br><br>
+            <input type="email" id="new-email" name="email" class="styled-input"><br><br>
             <label for="new-password">Password:</label>
-            <input type="password" id="new-password" name="password"><br><br>
+            <input type="password" id="new-password" name="password" class="styled-input"><br><br>
             <label for="role">Role:</label>
-            <select id="role" name="role">
+            <select id="role" name="role" class="styled-selector">
                 <option value="student">Student</option>
                 <option value="teacher">Teacher</option>
             </select>
-            <button id="submit" type="button">Sign up</button>
+            <button id="submit" type="button" class="submit_btn">Register</button>
         </form>
         <p>Are you registered? <a href="#" id="login-link">Login</a></p>
     `;
@@ -296,22 +304,22 @@ function showRegisterForm() {
 
         switch(true){
             case (username===""):
-                alert("Fill input 'Name'");
+                showErrorMessage("Field 'username' cannot be empty");
                 break;
             case (email===""):
-                alert("Fill input 'Email'");
+                showErrorMessage("Field 'email' cannot be empty");
                 break;
             case (!checkedEmail):
-                alert("Please enter a valid email address");
+                showErrorMessage("Please enter a valid email address");
                 break;
             case (emailExists):
-                alert("The email already exists");
+                showErrorMessage("The email already exists");
                 break;
             case (password===""):
-                alert("Fill input 'Password'");
+                showErrorMessage("Field 'password' cannot be empty");
                 break;
             case (!checkedPass):
-                alert("Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character");
+                showErrorMessage("Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character");
                 break;
             case (true):
                 addUser(username, email, password, role);
@@ -322,6 +330,16 @@ function showRegisterForm() {
     });
 }
 
+function showErrorMessage (textError){
+    const errorMessage = document.getElementById('error-message');
+    errorMessage.style.display = 'block'; // Показати повідомлення
+    errorMessage.textContent = textError;
+    // Приховати повідомлення через 3 секунди
+    setTimeout(() => {
+        errorMessage.style.display = 'none';
+    }, 7000);
+}
+        
 // Зберегти дані користувача після авторизації
 function saveUserData(user) {
     localStorage.setItem("userId", user[0]);

@@ -185,3 +185,11 @@ h2 {
     justify-content: space-between; /* або flex-start */
     margin-top: 20px; /* відстань від інших елементів */
 }
+@keyframes highlightAnimation {
+    0% { background-color: red; }
+    100% { background-color: transparent; }
+}
+
+.highlight-animated {
+    animation: highlightAnimation 2s forwards;
+}
