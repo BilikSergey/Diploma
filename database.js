@@ -1,10 +1,3 @@
-let db;
-const authContainer = document.getElementById('auth-container');
-
-showAuthForm();
-initDatabase();
-
-
 // Ініціалізація бази даних
 async function initDatabase() {
     const SQL = await initSqlJs({ locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.2/sql-wasm.wasm` });
@@ -136,6 +129,40 @@ function createTables() {
             FOREIGN KEY (test_id) REFERENCES tests(id)
         );
     `);
+    db.run(`
+        CREATE TABLE IF NOT EXISTS submissions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            test_id INTEGER,
+            student_id INTEGER,
+            submission_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (test_id) REFERENCES tests(id),
+            FOREIGN KEY (student_id) REFERENCES users(id)
+        );
+    `);
+    db.run(`
+        CREATE TABLE IF NOT EXISTS responses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            test_id INTEGER,
+            submission_id INTEGER,
+            question_id INTEGER,
+            FOREIGN KEY (test_id) REFERENCES tests(id),
+            FOREIGN KEY (submission_id) REFERENCES submissions(id),
+            FOREIGN KEY (question_id) REFERENCES questions(id)
+        );
+    `);
+    db.run(`
+        CREATE TABLE IF NOT EXISTS option_responses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            test_id INTEGER,
+            submission_id INTEGER,
+            question_id INTEGER,
+            selected_option_id INTEGER,
+            score INTEGER,
+            FOREIGN KEY (test_id) REFERENCES tests(id),
+            FOREIGN KEY (submission_id) REFERENCES submissions(id),
+            FOREIGN KEY (question_id) REFERENCES questions(id)
+        );
+    `);
 }
 
 // Виведення даних через консоль
@@ -198,156 +225,6 @@ function dropTable() {
     console.log("Table 'users' has been deleted.");
 }
 
-// Функція для додавання користувача
-function addUser(username, email, password, role) {
-    db.run("INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)", [username, email, password, role]);
-    saveDatabase();
-    console.log("User succesfully added");
-}
-
-function findUserByEmail(email) {
-    const stmt = db.prepare("SELECT * FROM users WHERE email = ?");
-    const result = stmt.get([email]);
-    stmt.free();
-    return result;
-}
-
-// Функція для відображення форми авторизації
-function showAuthForm() {
-    authContainer.innerHTML = `
-        <h2>Login</h2>
-        <form id="auth-form">
-            <label for="email">Email:</label>
-            <input type="text" id="email" name="email" class="styled-input"><br><br>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" class="styled-input"><br><br>
-            <button id="id_login_button" class="submit_btn" type="button">Log in</button>
-        </form>
-        <p>Don't register yet? <a href="#" id="register-link">Sign up</a></p>
-    `;
-    
-    // Додаємо обробник для переходу до реєстрації
-    document.getElementById('register-link').addEventListener('click', (event) => {
-        event.preventDefault();
-        showRegisterForm();
-    });
-    document.getElementById("id_login_button").addEventListener('click', () =>{
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
-        const user = findUserByEmail(email);
-        switch(true){
-        case(email===""):
-        showErrorMessage("Field 'Email' cannot be empty");
-            break;
-        case (user.length===[].length):
-            showErrorMessage("User with this email didn't register");
-            break;
-        case(password===""):
-            showErrorMessage("Field 'password' cannot be empty");
-            break;
-        case(user&&password!==user[3]):
-            showErrorMessage("Password is not correct");
-            break;
-        case(user[4]==="student"&&password===user[3]):
-            saveUserData(user)
-            window.location.href = 'cabinet_student.html';
-            break;
-        case(user[4]==="teacher"&&password===user[3]):
-            saveUserData(user)
-            window.location.href = 'cabinet_teacher.html';
-            break;
-        }
-    });
-}
-
-// Функція для відображення форми реєстрації
-function showRegisterForm() {
-    authContainer.innerHTML = `
-        <h2>Sign up</h2>
-        <form id="register-form">
-            <label for="new-name">Name:</label>
-            <input type="text" id="new-name" name="name" class="styled-input"><br><br>
-            <label for="new-email">Email:</label>
-            <input type="email" id="new-email" name="email" class="styled-input"><br><br>
-            <label for="new-password">Password:</label>
-            <input type="password" id="new-password" name="password" class="styled-input"><br><br>
-            <label for="role">Role:</label>
-            <select id="role" name="role" class="styled-selector">
-                <option value="student">Student</option>
-                <option value="teacher">Teacher</option>
-            </select>
-            <button id="submit" type="button" class="submit_btn">Register</button>
-        </form>
-        <p>Are you registered? <a href="#" id="login-link">Login</a></p>
-    `;
-    // Додаємо обробник для повернення до авторизації
-    document.getElementById('login-link').addEventListener('click', (event) => {
-        event.preventDefault();
-        showAuthForm();
-    });
-
-    document.getElementById('submit').addEventListener('click', () =>{
-        const username = document.getElementById('new-name').value;
-        const email = document.getElementById('new-email').value;
-        const password = document.getElementById('new-password').value;
-        const role = document.getElementById('role').value;
-
-        const stmt = db.prepare("SELECT 1 FROM users WHERE email = ?");
-        stmt.bind([email]);
-        const emailExists = stmt.step(); // Повертає true, якщо є результат (тобто email існує)
-
-        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        const checkedEmail = emailRegex.test(email);
-
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-        const checkedPass = passwordRegex.test(password);
-
-        switch(true){
-            case (username===""):
-                showErrorMessage("Field 'username' cannot be empty");
-                break;
-            case (email===""):
-                showErrorMessage("Field 'email' cannot be empty");
-                break;
-            case (!checkedEmail):
-                showErrorMessage("Please enter a valid email address");
-                break;
-            case (emailExists):
-                showErrorMessage("The email already exists");
-                break;
-            case (password===""):
-                showErrorMessage("Field 'password' cannot be empty");
-                break;
-            case (!checkedPass):
-                showErrorMessage("Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character");
-                break;
-            case (true):
-                addUser(username, email, password, role);
-                event.preventDefault();
-                showAuthForm();
-                break;
-        }
-    });
-}
-
-function showErrorMessage (textError){
-    const errorMessage = document.getElementById('error-message');
-    errorMessage.style.display = 'block'; // Показати повідомлення
-    errorMessage.textContent = textError;
-    // Приховати повідомлення через 3 секунди
-    setTimeout(() => {
-        errorMessage.style.display = 'none';
-    }, 7000);
-}
-        
-// Зберегти дані користувача після авторизації
-function saveUserData(user) {
-    localStorage.setItem("userId", user[0]);
-    localStorage.setItem("userName", user[1]);
-    localStorage.setItem("userEmail", user[2]);
-    localStorage.setItem("userPassword", user[3]);
-    localStorage.setItem("userRole", user[4]);
-}
 function getUserData() {
     return {
         id: localStorage.getItem("userId"),
@@ -358,6 +235,84 @@ function getUserData() {
     };
 }
 
+function clearUserData() {
+    localStorage.clear();
+    window.location.href = 'welcome.html';
+}
 
+// Поверхневе копіювання
+function shallowEqual(obj1, obj2) {
+    if (Object.keys(obj1).length !== Object.keys(obj2).length) {
+        return false;
+    }
+    for (let key in obj1) {
+        if (obj1[key] !== obj2[key]) {
+            return false;
+        }
+    }
+    return true;
+}
 
+function viewTestsOfUser(id) {
+    const queryUsers = `SELECT * FROM users WHERE id = ${id}`;
+    try {
+        const resultUsers = db.exec(queryUsers);
+        if (resultUsers.length > 0) {
+            resultUsers[0].values.forEach(row => {
+                console.log(`ID: ${row[0]}, Username: ${row[1]}, Email: ${row[2]}, Password: ${row[3]} Role: ${row[4]}`);
+            });
+        } else {
+            console.log("Запис з таким id не знайдено.");
+        }
+    } catch (error) {
+        console.error("Помилка виконання запиту:", error);
+    }
 
+    const queryTests = `SELECT * FROM tests WHERE user_id = ${id}`;
+    try {
+        const resultTests = db.exec(queryTests);
+        if (resultTests.length > 0) {
+            resultTests[0].values.forEach(row => {
+                console.log(`ID: ${row[0]}, user_id: ${row[1]}, title: ${row[2]}`);
+            });
+        } else {
+            console.log("Запис з таким id не знайдено.");
+        }
+    } catch (error) {
+        console.error("Помилка виконання запиту:", error);
+    }
+}
+
+function viewContentOfTest(id) {
+    const queryQuestion = `SELECT * FROM questions WHERE test_id = ${id}`;
+    try {
+        const resultQuestions = db.exec(queryQuestion);
+        if (resultQuestions.length > 0 && resultQuestions[0].values.length > 0) {
+            console.log("questions Database");
+              resultQuestions[0].values.forEach(row => {
+                console.log(`ID: ${row[0]}, test_id: ${row[1]}, text: ${row[2]}, response_type: ${row[3]}, rating: ${row[4]}`);
+            });
+            console.log("___________________________________________");
+           } else {
+              console.log("No questions found in the database.");
+           }
+    } catch (error) {
+        console.error("Помилка виконання запиту:", error);
+    }
+
+    const queryOption = `SELECT * FROM options WHERE test_id = ${id}`;
+    try {
+        const resultOptions = db.exec(queryOption);
+        if (resultOptions.length > 0 && resultOptions[0].values.length > 0) {
+            console.log("options Database");
+              resultOptions[0].values.forEach(row => {
+                console.log(`ID: ${row[0]}, question_id: ${row[1]} test_id: ${row[2]}, text: ${row[3]}, is_correct: ${row[4]}`);
+              });
+              console.log("___________________________________________");
+        } else {
+            console.log("No options found in the database.");
+        }
+    } catch (error) {
+        console.error("Помилка виконання запиту:", error);
+    }
+}

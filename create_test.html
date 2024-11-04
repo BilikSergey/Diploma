@@ -16,6 +16,15 @@
         <div class="questions-container" id="questionsContainer"></div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.2/sql-wasm.js"></script>
+    <script src="database.js"></script>
     <script src="create_test.js"></script>
+    <script>
+        const currentObj = getUserData().role;
+        document.addEventListener("DOMContentLoaded", function() {
+            if(currentObj!=="teacher"){
+                window.location.href = 'welcome.html';
+            }
+        });
+    </script>
 </body>
 </html>

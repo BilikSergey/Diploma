@@ -193,3 +193,54 @@ h2 {
 .highlight-animated {
     animation: highlightAnimation 2s forwards;
 }
+
+
+.results-form {
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    text-align: left;
+}
+
+.test-info {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.test-detail {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+}
+
+.test-detail label {
+    font-weight: bold;
+    color: #333;
+}
+
+.test-detail span {
+    color: #555;
+}
+
+.start-test-btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 200px;
+    height: 40px;
+}
+
+.start-test-btn:hover {
+    background-color: #0056b3;
+}

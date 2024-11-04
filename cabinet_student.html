@@ -10,8 +10,7 @@
     <div class="dashboard-container">
         <h1>Welcome to Your Dashboard</h1>
         <div class="button-group">
-            <button class="dashboard-btn" onclick="location.href='create_test.html'">Create Test</button>
-            <button class="dashboard-btn" onclick="location.href='view_tests.html'">View Tests</button>
+            <button class="dashboard-btn" onclick="location.href='search_test.html'">Search</button>
             <button class="dashboard-btn" onclick="location.href='view_results.html'">View Results</button>
             <button class="dashboard-btn" onclick="location.href='settings.html'">Settings</button>
             <button id="id_exit_button" class="dashboard-btn" onclick="">Exit</button>
@@ -21,7 +20,7 @@
     <script>
         const currentObj = getUserData().role;
         document.addEventListener("DOMContentLoaded", function() {
-            if(currentObj!=="teacher"){
+            if(currentObj!=="student"){
                 window.location.href = 'welcome.html';
             }
         });
