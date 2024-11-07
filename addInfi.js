@@ -1,51 +1,33 @@
-queryCount++;
-    const container = document.getElementById('resultsContainer');
-    const divQueryForm = document.createElement('div');
-    divQueryForm.classList.add('question-form');
-    divQueryForm.dataset.queryId = queryCount;
-
-    const divQueryFromDB = document.createElement('div');
-    divQueryFromDB.classList.add('test-info');
-
-    const divContentQueryFromDBTitle = document.createElement('div');
-    divContentQueryFromDBTitle.classList.add('test-detail');
-    const queryLabelTitle = document.createElement('label');
-    queryLabelTitle.textContent = 'Test Name';
-    const querySpanTitle = document.createElement('span');
-    querySpanTitle.classList.add('test-title');
-    querySpanTitle.textContent = '';
-    divContentQueryFromDBTitle.appendChild('queryLabelTitle');
-    divContentQueryFromDBTitle.appendChild('querySpanTitle');
-
-    const divContentQueryFromDBAuthor = document.createElement('div');
-    divContentQueryFromDBAuthor.classList.add('test-detail');
-    const queryLabelAuthor = document.createElement('label');
-    queryLabelAuthor.textContent = 'Author';
-    const querySpanAuthor = document.createElement('span');
-    querySpanAuthor.classList.add('test-title');
-    querySpanAuthor.textContent = '';
-    divContentQueryFromDBAuthor.appendChild('queryLabelAuthor');
-    divContentQueryFromDBAuthor.appendChild('querySpanAuthor');
-
-    const divContentQueryFromDBScore = document.createElement('div');
-    divContentQueryFromDBScore.classList.add('test-detail');
-    const queryLabelScore = document.createElement('label');
-    queryLabelScore.textContent = 'Author';
-    const querySpanScore = document.createElement('span');
-    querySpanScore.classList.add('test-title');
-    querySpanScore.textContent = '';
-    divContentQueryFromDBScore.appendChild('queryLabelScore');
-    divContentQueryFromDBScore.appendChild('querySpanScore');
-
-    divQueryFromDB.appendChild('divContentQueryFromDBTitle');
-    divQueryFromDB.appendChild('divContentQueryFromDBAuthor');
-    divQueryFromDB.appendChild('divContentQueryFromDBScore');
-
-    const btnQueryContainer = document.createElement('div');
-    btnQueryContainer.classList.add('button-container');
-    const btnQuery = document.createElement('button');
-    btnQuery.classList.add('add-question-btn');
-
-    divQueryForm.appendChild('divQueryFromDB');
-    divQueryForm.appendChild('btnQueryContainer');
-    container.appendChild('divQueryForm');
+function sendResultOfStudent(){
+    db.run("INSERT INTO submissions (test_id, student_id) VALUES (?, ?)", [test_id[0].values[0][0], getUserData().id]);
+    let counterI = 0;
+    for(let i = 1; i<=questionCount; i++){  
+        let counterJ = 0;
+        db.run("INSERT INTO responses (test_id, submission_id, question_id) VALUES (?, ?, ?)", [test_id[0].values[0][0], getLastRecord("submissions")[0], questionsData[0].values[counterI][0]]);
+        const optionData = db.exec(`SELECT * FROM options WHERE question_id = ${questionsData[0].values[counterI][0]}`);
+        const form_checkBox = document.querySelector(`#id-div-multiple-choice-options${i}`);
+        const trueRadio = document.getElementById(`id_true${i}`);
+        if(form_checkBox){
+            const checkboxes = form_checkBox.querySelectorAll('input[type="checkbox"]');
+            for(let j = 1; j<=checkboxes.length; j++){           
+                const response_checkBox = document.getElementById(`multipleChoice${i}${j}[]`);
+                if(response_checkBox.checked){
+                    db.run("INSERT INTO option_responses (test_id, submission_id, question_id, selected_option_id, score) VALUES (?, ?, ?, ?, ?)", [test_id[0].values[0][0], getLastRecord("submissions")[0], questionsData[0].values[counterI][0], optionData[0].values[counterJ][0], optionData[0].values[counterJ][4]]);
+                }
+                counterJ++;
+            }
+        } else {     
+            if(trueRadio.checked){
+                db.run("INSERT INTO option_responses (test_id, submission_id, question_id, selected_option_id, score) VALUES (?, ?, ?, ?, ?)", [test_id[0].values[0][0], getLastRecord("submissions")[0], questionsData[0].values[0][0], optionData[0].values[0][0], optionData[0].values[0][4]]);
+            } else {
+                db.run("INSERT INTO option_responses (test_id, submission_id, question_id, selected_option_id, score) VALUES (?, ?, ?, ?, ?)", [test_id[0].values[0][0], getLastRecord("submissions")[0], questionsData[0].values[1][0], optionData[0].values[1][0], optionData[0].values[1][4]]);
+            }
+        }
+        counterI++;
+    }
+    saveDatabase();
+    viewDatabase();
+    clearTestData();
+    window.location.href = "cabinet_student.html";
+    console.log("Data succesfully added");
+}

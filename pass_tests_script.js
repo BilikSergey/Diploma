@@ -1,11 +1,15 @@
 let db;
 let questionCount = 0;
 const testInfo = getTestData();
-const user_id = db.exec(`SELECT id FROM users WHERE username = '${testInfo.author}'`);
-const test_id = db.exec(`SELECT id FROM tests WHERE user_id = '${user_id[0].values[0][0]}' AND title = '${testInfo.title}'`);
-const questionsData = db.exec(`SELECT * FROM questions WHERE test_id = ${test_id[0].values[0][0]}`);
+let user_id;
+let test_id;
+let questionsData;
+
 async function executeFunctions() {
     await initDatabase();
+    user_id = db.exec(`SELECT id FROM users WHERE username = '${testInfo.author}'`);
+    test_id = db.exec(`SELECT id FROM tests WHERE user_id = '${user_id[0].values[0][0]}' AND title = '${testInfo.title}'`);
+    questionsData = db.exec(`SELECT * FROM questions WHERE test_id = ${test_id[0].values[0][0]}`);
     generateTest();
 }
 executeFunctions();
@@ -73,17 +77,18 @@ async function generateTest(){
 }
 
 function addCheckboxOption(id_checkBox_Fectch, container, optionDataText, j) { 
+    j++;
     const optionDiv = document.createElement('div');
     optionDiv.classList.add('multiple-choice-option');
 
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
-    checkbox.id = `multipleChoice${id_checkBox_Fectch}${j++}[]`;
+    checkbox.id = `multipleChoice${id_checkBox_Fectch}${j}[]`;
 
     const optionInput = document.createElement('input');
     optionInput.type = 'text';
     optionInput.readOnly = true;
-    optionInput.id = `multipleChoiceText${id_checkBox_Fectch}${j++}[]`;
+    optionInput.id = `multipleChoiceText${id_checkBox_Fectch}${j}[]`;
     optionInput.placeholder = 'Answer option';
     optionInput.value = optionDataText;    
 
@@ -102,25 +107,46 @@ function getTestData(){
 }
 
 function sendResultOfStudent(){
-    db.run("INSERT INTO submissions (test_id, student_id) VALUES (?, ?)", [test_id, getUserData().id]);
-
-    db.run("INSERT INTO responses (test_id, submission_id, question_id) VALUES (?, ?, ?)", [test_id, getLastRecord("submissions")[0], questionsData[0].values[i][0]]);
-
-    for(let i = 1; i<=questionCount; i++){
-        const optionData = db.exec(`SELECT * FROM options WHERE question_id = ${questionsData[0].values[i][0]}`);
+    db.run("INSERT INTO submissions (test_id, student_id, teacher_name) VALUES (?, ?, ?)", [test_id[0].values[0][0], getUserData().id, getTestData().author]);
+    let counterI = 0;
+    for(let i = 1; i<=questionCount; i++){  
+        let counterJ = 0;
+        db.run("INSERT INTO responses (test_id, submission_id, question_id) VALUES (?, ?, ?)", [test_id[0].values[0][0], getLastRecord("submissions")[0], questionsData[0].values[counterI][0]]);
+        const optionData = db.exec(`SELECT * FROM options WHERE question_id = ${questionsData[0].values[counterI][0]}`);
+        
         const form_checkBox = document.querySelector(`#id-div-multiple-choice-options${i}`);
+        const trueRadio = document.getElementById(`id_true${i}`);
+        const falseRadio = document.getElementById(`id_false${i}`);
         if(form_checkBox){
-            for(let j = 1; j<=questionCount; j++){            
+            const checkboxes = form_checkBox.querySelectorAll('input[type="checkbox"]');
+            for(let j = 1; j<=checkboxes.length; j++){           
                 const response_checkBox = document.getElementById(`multipleChoice${i}${j}[]`);
-                if(response_checkBox.checked===true){
-                    db.run("INSERT INTO option_responses (test_id, submission_id, question_id, selected_option_id, score) VALUES (?, ?, ?, ?, ?)", [test_id, getLastRecord("submissions")[0], questionsData[0].values[i][0], optionData[0].values[j][0], optionData[0].values[j][4]]);
-                }
+                const optionChecked = db.exec(`SELECT * FROM options WHERE question_id = ${questionsData[0].values[counterI][0]} AND is_correct = "true"`)[0].values.length;
+                if(response_checkBox.checked&&optionData[0].values[counterJ][4]==="true"){
+                    db.run("INSERT INTO option_responses (test_id, submission_id, question_id, selected_option_id, score) VALUES (?, ?, ?, ?, ?)", [test_id[0].values[0][0], getLastRecord("submissions")[0], questionsData[0].values[counterI][0], optionData[0].values[counterJ][0], ((questionsData[0].values[counterI][4])/optionChecked)]);
+                } else if(response_checkBox.checked&&optionData[0].values[counterJ][4]==="false"){
+                    db.run("INSERT INTO option_responses (test_id, submission_id, question_id, selected_option_id, score) VALUES (?, ?, ?, ?, ?)", [test_id[0].values[0][0], getLastRecord("submissions")[0], questionsData[0].values[counterI][0], optionData[0].values[counterJ][0], 0]);
+                } 
+                counterJ++;
+            }
+        } else {     
+            if(trueRadio.checked&&optionData[0].values[0][4]==="true"){
+                db.run("INSERT INTO option_responses (test_id, submission_id, question_id, selected_option_id, score) VALUES (?, ?, ?, ?, ?)", [test_id[0].values[0][0], getLastRecord("submissions")[0], questionsData[0].values[0][0], optionData[0].values[0][0], questionsData[0].values[counterI][4]]);
+            } else if (trueRadio.checked&&optionData[0].values[0][4]==="false"){
+                db.run("INSERT INTO option_responses (test_id, submission_id, question_id, selected_option_id, score) VALUES (?, ?, ?, ?, ?)", [test_id[0].values[0][0], getLastRecord("submissions")[0], questionsData[0].values[0][0], optionData[0].values[0][0], 0]);
+            } else if (falseRadio.checked&&optionData[0].values[1][4]==="true"){
+                db.run("INSERT INTO option_responses (test_id, submission_id, question_id, selected_option_id, score) VALUES (?, ?, ?, ?, ?)", [test_id[0].values[0][0], getLastRecord("submissions")[0], questionsData[0].values[1][0], optionData[0].values[1][0], questionsData[0].values[counterI][4]]);
+            } else {
+                db.run("INSERT INTO option_responses (test_id, submission_id, question_id, selected_option_id, score) VALUES (?, ?, ?, ?, ?)", [test_id[0].values[0][0], getLastRecord("submissions")[0], questionsData[0].values[1][0], optionData[0].values[1][0], 0]);
             }
         }
+        counterI++;
     }
     saveDatabase();
+    viewDatabase();
+    clearTestData();
+    window.location.href = "cabinet_student.html";
     console.log("Data succesfully added");
-    
 }
 
 function getLastRecord(table_name) {
@@ -136,4 +162,10 @@ function getLastRecord(table_name) {
     } catch (error) {
         console.error("Помилка виконання запиту:", error);
     }
+}
+
+function clearTestData() {
+    localStorage.removeItem("title");
+    localStorage.removeItem("author");
+    localStorage.removeItem("score");
 }

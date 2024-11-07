@@ -134,9 +134,11 @@ function createTables() {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             test_id INTEGER,
             student_id INTEGER,
+            teacher_name TEXT NOT NULL,
             submission_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (test_id) REFERENCES tests(id),
-            FOREIGN KEY (student_id) REFERENCES users(id)
+            FOREIGN KEY (student_id) REFERENCES users(id),
+            FOREIGN KEY (teacher_name) REFERENCES users(username)
         );
     `);
     db.run(`
@@ -171,6 +173,9 @@ function viewDatabase() {
     const resultTests = db.exec("SELECT * FROM tests;");
     const resultQuestions = db.exec("SELECT * FROM questions;");
     const resultOptions = db.exec("SELECT * FROM options;");
+    const resultSubmissions = db.exec("SELECT * FROM submissions;");
+    const resultResponses = db.exec("SELECT * FROM responses;");
+    const resultOption_responses = db.exec("SELECT * FROM option_responses;");
     if (resultUsers.length > 0 && resultUsers[0].values.length > 0) {
         console.log("users Database");
         resultUsers[0].values.forEach(row => {
@@ -208,6 +213,36 @@ function viewDatabase() {
         console.log("___________________________________________");
     } else {
         console.log("No options found in the database.");
+    }
+
+    if (resultSubmissions.length > 0 && resultSubmissions[0].values.length > 0) {
+        console.log("Submission Database");
+        resultSubmissions[0].values.forEach(row => {
+            console.log(`ID: ${row[0]}, test_id: ${row[1]} student_id: ${row[2]}, teacher_name: ${row[3]}, submission_date: ${row[4]}}`);
+        });
+        console.log("___________________________________________");
+    } else {
+        console.log("No submission found in the database.");
+    }
+
+    if (resultResponses.length > 0 && resultResponses[0].values.length > 0) {
+        console.log("Responses Database");
+        resultResponses[0].values.forEach(row => {
+            console.log(`ID: ${row[0]}, test_id: ${row[1]} submission_id: ${row[2]}, question_id: ${row[3]}}`);
+        });
+        console.log("___________________________________________");
+    } else {
+        console.log("No responses found in the database.");
+    }
+
+    if (resultOption_responses.length > 0 && resultOption_responses[0].values.length > 0) {
+        console.log("Option_responses Database");
+        resultOption_responses[0].values.forEach(row => {
+            console.log(`ID: ${row[0]}, test_id: ${row[1]} submission_id: ${row[2]}, question_id: ${row[3]}, selected_option_id: ${row[4]}, score: ${row[5]}}`);
+        });
+        console.log("___________________________________________");
+    } else {
+        console.log("No option_responses found in the database.");
     }
 }
 
@@ -311,6 +346,70 @@ function viewContentOfTest(id) {
               console.log("___________________________________________");
         } else {
             console.log("No options found in the database.");
+        }
+    } catch (error) {
+        console.error("Помилка виконання запиту:", error);
+    }
+}
+
+function viewSubmissionsOfUser(id) {
+    const queryUsers = `SELECT * FROM users WHERE id = ${id}`;
+    try {
+        const resultUsers = db.exec(queryUsers);
+        if (resultUsers.length > 0) {
+            resultUsers[0].values.forEach(row => {
+                console.log(`ID: ${row[0]}, Username: ${row[1]}, Email: ${row[2]}, Password: ${row[3]} Role: ${row[4]}`);
+            });
+        } else {
+            console.log("Запис з таким id не знайдено.");
+        }
+    } catch (error) {
+        console.error("Помилка виконання запиту:", error);
+    }
+
+    const queryTests = `SELECT * FROM submissions WHERE student_id = ${id}`;
+    try {
+        const resultTests = db.exec(queryTests);
+        if (resultTests.length > 0) {
+            resultTests[0].values.forEach(row => {
+                console.log(`ID: ${row[0]}, test_id: ${row[1]}, student_id: ${row[2]}, submission_date: ${row[3]}`);
+            });
+        } else {
+            console.log("Запис з таким id не знайдено.");
+        }
+    } catch (error) {
+        console.error("Помилка виконання запиту:", error);
+    }
+}
+
+function viewContentOfSubmission(id) {
+    const queryQuestion = `SELECT * FROM responses WHERE submission_id = ${id}`;
+    try {
+        const resultQuestions = db.exec(queryQuestion);
+        if (resultQuestions.length > 0 && resultQuestions[0].values.length > 0) {
+            console.log("questions Database");
+              resultQuestions[0].values.forEach(row => {
+                console.log(`ID: ${row[0]}, test_id: ${row[1]}, submission_id: ${row[2]}, question_id: ${row[3]}`);
+            });
+            console.log("___________________________________________");
+           } else {
+              console.log("No responses found in the database.");
+           }
+    } catch (error) {
+        console.error("Помилка виконання запиту:", error);
+    }
+
+    const queryOption = `SELECT * FROM option_responses WHERE submission_id = ${id}`;
+    try {
+        const resultOptions = db.exec(queryOption);
+        if (resultOptions.length > 0 && resultOptions[0].values.length > 0) {
+            console.log("options Database");
+              resultOptions[0].values.forEach(row => {
+                console.log(`ID: ${row[0]}, test_id: ${row[1]} submission_id: ${row[2]}, question_id: ${row[3]}, selected_option_id: ${row[4]}, score: ${row[5]}`);
+              });
+              console.log("___________________________________________");
+        } else {
+            console.log("No option_responses found in the database.");
         }
     } catch (error) {
         console.error("Помилка виконання запиту:", error);
