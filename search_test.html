@@ -9,7 +9,8 @@
 <body>
     <div class="dashboard-container">
         <div class="add-button-container">
-            <button id="id_submit_button" class="add-question-btn" onclick="">Search</button>
+            <button onclick="sortForms('author')" class="add-question-btn">Sort by Teacher</button>
+            <button onclick="sortForms('title')" class="add-question-btn">Sort by Test</button>
         </div>
         <h2><input id="searchInput" type="text" class="styled-input" placeholder="Search..." ></h2>
         <div class="questions-container" id="resultsContainer"></div>

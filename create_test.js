@@ -66,11 +66,7 @@ function sendTestIntoDB(){
         }
     }
     const userData = getUserData();
-    db.run("INSERT INTO tests (user_id, title) VALUES (?, ?)", [userData.id, testName.value]);
-    addTest();
-    saveDatabase();
-    window.location.href = 'cabinet_teacher.html';
-    viewDatabase();
+    addTestAndRedirect(userData.id, testName.value);
 }
 
 function addTest() {
@@ -249,6 +245,7 @@ function addQuestionForm(copyData = null) {
     deleteButton.textContent = 'Delete question';
     deleteButton.onclick = () => {
         checkForSubmit--;
+        questionCount--;
         questionForm.remove();
         if(checkForSubmit===0){submit_button.style.visibility = 'hidden';}
     }
@@ -289,9 +286,10 @@ function addCheckboxOption(id_checkBox_Fectch, container, checkBoxCount, optionT
 
     const deleteButton = document.createElement('button');
     deleteButton.type = 'button';
-    if(checkBoxCount>1){
-        deleteButton.textContent = '❌'; // Хрестик для видалення
-        deleteButton.onclick = () => optionDiv.remove(); // Видаляє даний варіант
+    deleteButton.textContent = '❌'; // Хрестик для видалення
+    deleteButton.onclick = () => optionDiv.remove(); // Видаляє даний варіант
+    if(checkBoxCount===1){
+        deleteButton.style.visibility = "hidden";
     }
 
     optionDiv.appendChild(checkbox);
@@ -313,4 +311,13 @@ function highlightElement(element) {
     setTimeout(() => {
         element.classList.remove('highlight-animated');
     }, 2000);
+}
+
+async function addTestAndRedirect(userData, testName) {
+    await db.run("INSERT INTO tests (user_id, title) VALUES (?, ?)", [userData, testName]);
+    addTest();
+    await saveDatabase();
+    setTimeout(() => {
+    window.location.href = 'cabinet_teacher.html';
+    }, 500);
 }

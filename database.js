@@ -415,3 +415,21 @@ function viewContentOfSubmission(id) {
         console.error("Помилка виконання запиту:", error);
     }
 }
+
+function sortForms(sortType) {
+    const container = document.querySelector(".questions-container");
+    const forms = Array.from(container.getElementsByClassName("results-form"));
+
+    sortOrder[sortType] = !sortOrder[sortType];
+
+    forms.sort((a, b) => {
+        const valueA = a.dataset[sortType] || '';
+        const valueB = b.dataset[sortType] || '';
+        if (sortType === 'time') {
+            return sortOrder[sortType] ? new Date(valueA) - new Date(valueB) : new Date(valueB) - new Date(valueA);
+        } else {
+            return sortOrder[sortType] ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
+        }
+    });
+    forms.forEach(form => container.appendChild(form));
+}

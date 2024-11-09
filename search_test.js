@@ -1,6 +1,11 @@
 let db;
 let queryCount = 0;
+let sortOrder = {
+    time: true, 
+    title: true, 
+};
 initDatabase();
+
 
 // Додаємо подію для інпуту пошуку
 document.getElementById("searchInput").addEventListener("input", () => {
@@ -33,6 +38,9 @@ function addQueryFromDB(title, author, score){
     const divQueryForm = document.createElement('div');
     divQueryForm.classList.add('results-form');
     divQueryForm.dataset.queryId = queryCount;
+    divQueryForm.dataset.author = author;
+    divQueryForm.dataset.title = title;
+    divQueryForm.dataset.date = '';
 
     const divQueryFromDB = document.createElement('div');
     divQueryFromDB.classList.add('test-info');

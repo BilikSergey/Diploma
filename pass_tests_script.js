@@ -15,6 +15,8 @@ async function executeFunctions() {
 executeFunctions();
 
 async function generateTest(){
+    const testName = document.getElementById("id_input_test_name");
+    testName.textContent = testInfo.title;
     for(let i = 0; i<questionsData[0].values.length; i++){
         const optionData = db.exec(`SELECT * FROM options WHERE question_id = ${questionsData[0].values[i][0]}`);
         const container = document.getElementById('questionsContainer');
@@ -131,22 +133,18 @@ function sendResultOfStudent(){
             }
         } else {     
             if(trueRadio.checked&&optionData[0].values[0][4]==="true"){
-                db.run("INSERT INTO option_responses (test_id, submission_id, question_id, selected_option_id, score) VALUES (?, ?, ?, ?, ?)", [test_id[0].values[0][0], getLastRecord("submissions")[0], questionsData[0].values[0][0], optionData[0].values[0][0], questionsData[0].values[counterI][4]]);
+                db.run("INSERT INTO option_responses (test_id, submission_id, question_id, selected_option_id, score) VALUES (?, ?, ?, ?, ?)", [test_id[0].values[0][0], getLastRecord("submissions")[0], questionsData[0].values[counterI][0], optionData[0].values[0][0], questionsData[0].values[counterI][4]]);
             } else if (trueRadio.checked&&optionData[0].values[0][4]==="false"){
-                db.run("INSERT INTO option_responses (test_id, submission_id, question_id, selected_option_id, score) VALUES (?, ?, ?, ?, ?)", [test_id[0].values[0][0], getLastRecord("submissions")[0], questionsData[0].values[0][0], optionData[0].values[0][0], 0]);
+                db.run("INSERT INTO option_responses (test_id, submission_id, question_id, selected_option_id, score) VALUES (?, ?, ?, ?, ?)", [test_id[0].values[0][0], getLastRecord("submissions")[0], questionsData[0].values[counterI][0], optionData[0].values[0][0], 0]);
             } else if (falseRadio.checked&&optionData[0].values[1][4]==="true"){
-                db.run("INSERT INTO option_responses (test_id, submission_id, question_id, selected_option_id, score) VALUES (?, ?, ?, ?, ?)", [test_id[0].values[0][0], getLastRecord("submissions")[0], questionsData[0].values[1][0], optionData[0].values[1][0], questionsData[0].values[counterI][4]]);
+                db.run("INSERT INTO option_responses (test_id, submission_id, question_id, selected_option_id, score) VALUES (?, ?, ?, ?, ?)", [test_id[0].values[0][0], getLastRecord("submissions")[0], questionsData[0].values[counterI][0], optionData[0].values[1][0], questionsData[0].values[counterI][4]]);
             } else {
-                db.run("INSERT INTO option_responses (test_id, submission_id, question_id, selected_option_id, score) VALUES (?, ?, ?, ?, ?)", [test_id[0].values[0][0], getLastRecord("submissions")[0], questionsData[0].values[1][0], optionData[0].values[1][0], 0]);
+                db.run("INSERT INTO option_responses (test_id, submission_id, question_id, selected_option_id, score) VALUES (?, ?, ?, ?, ?)", [test_id[0].values[0][0], getLastRecord("submissions")[0], questionsData[0].values[counterI][0], optionData[0].values[1][0], 0]);
             }
         }
         counterI++;
     }
-    saveDatabase();
-    viewDatabase();
-    clearTestData();
-    window.location.href = "cabinet_student.html";
-    console.log("Data succesfully added");
+    addTestAndRedirect();
 }
 
 function getLastRecord(table_name) {
@@ -164,8 +162,15 @@ function getLastRecord(table_name) {
     }
 }
 
-function clearTestData() {
+async function clearTestData() {
     localStorage.removeItem("title");
     localStorage.removeItem("author");
     localStorage.removeItem("score");
+}
+async function addTestAndRedirect() {
+    await saveDatabase();
+    await clearTestData();
+    setTimeout(() => {
+    window.location.href = "cabinet_student.html";
+    }, 500);
 }
