@@ -272,7 +272,7 @@ function getUserData() {
 
 function clearUserData() {
     localStorage.clear();
-    window.location.href = 'welcome.html';
+    window.location.href = 'index.html';
 }
 
 // Поверхневе копіювання
@@ -433,3 +433,7 @@ function sortForms(sortType) {
     });
     forms.forEach(form => container.appendChild(form));
 }
+
+function goBack() {
+    window.history.back();
+  }

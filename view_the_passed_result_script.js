@@ -20,6 +20,14 @@ async function executeFunctions() {
     } else {
         submission_id = db.exec(`SELECT id FROM submissions WHERE test_id = ${test_id} AND student_id = ${getUserData().id}`)[0].values[0][0];
     }
+    let scoreCount = 0;
+    const submitButton = document.getElementById("id_submit_button");
+    for(let i = 0; i<questionsData[0].values.length;i++){
+        scoreCount+=questionsData[0].values[i][4];
+    }
+    if(testInfo.score!=scoreCount){
+        submitButton.style.visibility = "visible";
+    }
     generateTest();
 }
 executeFunctions();
@@ -181,3 +189,30 @@ function getScoreOfStudent(i){
         return score;
     }
 }
+
+document.getElementById("id_submit_button").addEventListener("click", async () => {
+    // const sumOfQuestions = document.querySelectorAll('[data-question-id]').length;
+    // for(let i = 1;i<=sumOfQuestions;i++){
+    //     const questionForm = document.querySelector(`[data-question-id="${i}"]`);
+    //     const option = questionForm.querySelectorAll('.uncorrectOptions');
+    // }
+
+    const text = document.getElementById("id_input_test_name").textContent;
+    const query = encodeURIComponent(text);
+
+    // Запит на наш проксі-сервер
+    const response = await fetch(`http://localhost:3000/proxy/news?q=${query}`);
+    const data = await response.json();
+
+    if (data && data.articles) {
+        const resultsContainer = document.getElementById('questionsContainer');
+        resultsContainer.innerHTML = '';
+        data.articles.forEach(article => {
+            const link = document.createElement('a');
+            link.href = article.url;
+            link.textContent = article.title;
+            resultsContainer.appendChild(link);
+        });
+    }
+
+});

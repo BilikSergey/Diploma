@@ -12,20 +12,33 @@ document.getElementById("searchInput").addEventListener("input", () => {
     const container = document.getElementById('resultsContainer');
     container.innerHTML = "";
     const searchInput = document.getElementById("searchInput").value;
-    const queryTeachers = `SELECT * FROM users WHERE username LIKE '${searchInput}';`;
-    const queryTests = `SELECT * FROM tests WHERE title LIKE '${searchInput}';`;
-    let resultsTeachers = db.exec(queryTeachers);
-    let resultsTests = db.exec(queryTests);
+    const searchWords = searchInput.toLowerCase().split(/\s+/);
+
+    // Формуємо SQL-запит з умовами для кожного слова
+    let sqlQuery = "SELECT * FROM tests WHERE ";
+    let conditions = searchWords.map(word => {
+        return `LOWER(title) LIKE '%${word}%'`;
+    });
+    sqlQuery += conditions.join(' OR ');  // Об'єднуємо умови через OR для пошуку хоча б одного співпадіння
+    const resultsTests = db.exec(sqlQuery);
+
+    sqlQuery = "SELECT * FROM users WHERE ";
+    conditions = searchWords.map(word => {
+        return `LOWER(username) LIKE '%${word}%'`;
+    });
+    sqlQuery += conditions.join(' OR ');  // Об'єднуємо умови через OR для пошуку хоча б одного співпадіння
+    const resultsTeachers = db.exec(sqlQuery);
+
     switch(true){
-        case(resultsTests.length!==0 && resultsTeachers.length!==0 && resultsTeachers[0].values[0][4] === "teacher"):
+        case(searchInput.length!==0 && resultsTests.length!==0 && resultsTeachers.length!==0 && resultsTeachers[0].values[0][4] === "teacher"):
             resultOfTestsSearch (resultsTests);
             resultOfTeacherSearch (resultsTeachers);
             break;
-        case(resultsTests.length!==0):
+        case(searchInput.length!==0 && resultsTests.length!==0):
             console.log(resultsTests);
             resultOfTestsSearch (resultsTests);
             break;
-        case(resultsTeachers.length!==0 && resultsTeachers[0].values[0][4] === "teacher"):
+        case(searchInput.length!==0 &&  resultsTeachers.length!==0 && resultsTeachers[0].values[0][4] === "teacher"):
             console.log(resultsTeachers); 
             resultOfTeacherSearch (resultsTeachers);
             break;

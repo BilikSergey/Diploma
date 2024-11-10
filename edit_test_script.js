@@ -82,8 +82,9 @@ function sendTestIntoDB(){
     db.run("INSERT INTO tests (user_id, title) VALUES (?, ?)", [userData.id, testName.value]);
     addTest();
     saveDatabase();
-    // window.location.href = 'cabinet_teacher.html';
-    viewDatabase();
+    setTimeout(() => {
+        window.location.href = 'cabinet_teacher.html';
+    }, 500);
 }
 
 function deletePriorTableInfo(){

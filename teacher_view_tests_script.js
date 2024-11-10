@@ -3,6 +3,7 @@ let queryCount = 0;
 async function executeInitAndQuery(){
     await initDatabase();
     resultOfTestsSearch();
+    
 }
 
 executeInitAndQuery();
@@ -49,7 +50,19 @@ function addQueryFromDB(title, score){
         localStorage.setItem("title", title);
         window.location.href = 'edit_test.html';
     }
+    const btnQueryDelete = document.createElement('button');
+    btnQueryDelete.textContent = 'Delete test';
+    btnQueryDelete.classList.add('start-test-btn');
+    btnQueryDelete.onclick = () => {
+        const test_id = db.exec("SELECT id FROM tests WHERE title = ? AND user_id = ?", [title, getUserData().id])[0].values[0][0];
+        deletePriorTableInfo(test_id);
+        saveDatabase();
+        setTimeout(() => {
+            location.reload(true);
+        }, 500);
+    }
     btnQueryContainer.appendChild(btnQuery);
+    btnQueryContainer.appendChild(btnQueryDelete);
     divQueryForm.appendChild(divQueryFromDB);
     divQueryForm.appendChild(btnQueryContainer);
     container.appendChild(divQueryForm);
@@ -66,5 +79,21 @@ async function resultOfTestsSearch (){
             score += singleScore;
         } 
         addQueryFromDB(title, score);
+    }
+}
+
+function deletePriorTableInfo(test_id){
+    db.run("BEGIN TRANSACTION");
+    try {
+        db.exec("DELETE FROM option_responses WHERE test_id = ?", [test_id]);
+        db.exec("DELETE FROM responses WHERE test_id = ?", [test_id]);
+        db.exec("DELETE FROM submissions WHERE test_id = ?", [test_id]);
+        db.exec("DELETE FROM options WHERE test_id = ?", [test_id]);
+        db.exec("DELETE FROM questions WHERE test_id = ?", [test_id]);
+        db.exec("DELETE FROM tests WHERE id = ?", [test_id]);
+        db.run("COMMIT");
+    } catch (error) {
+        db.run("ROLLBACK");
+        console.error("Error deleting test data:", error);
     }
 }

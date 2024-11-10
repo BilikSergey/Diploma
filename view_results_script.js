@@ -76,7 +76,7 @@ function addQueryFromDB(user_name, test_name, score, date, stringUserRole){
     const btnQueryContainer = document.createElement('div');
     btnQueryContainer.classList.add('button-container');
     const btnQuery = document.createElement('button');
-    btnQuery.textContent = 'Pass the test';
+    btnQuery.textContent = 'View the result';
     btnQuery.classList.add('start-test-btn');
     btnQuery.onclick = () => {
         localStorage.setItem("user_name", user_name);
@@ -168,7 +168,8 @@ document.getElementById("searchInput").addEventListener("input", () => {
     const forms = Array.from(container.getElementsByClassName("results-form"));
     if(searchInput!==''){
         forms.forEach(form => {
-            if(searchInput.toLowerCase()==form.dataset.author.toLowerCase()||searchInput.toLowerCase()==form.dataset.title.toLowerCase()||searchInput.toLowerCase()==form.dataset.date.toLowerCase()){
+            const result = compareStrings(searchInput, form.dataset.author, form.dataset.title, form.dataset.date);
+            if(result){
                 console.log(form.dataset.author);
                 container.appendChild(form);
             } else {
@@ -177,4 +178,38 @@ document.getElementById("searchInput").addEventListener("input", () => {
         });
     }
 });
+
+function compareStrings(str1, str2, str3, str4) {
+    // Розбиваємо рядки на масиви слів
+    const words1 = str1.toLowerCase().split(/\s+/);
+    const words2 = str2.toLowerCase().split(/\s+/);
+    const words3 = str3.toLowerCase().split(/\s+/);
+    const words4 = str4.toLowerCase().split(/\s+/);
+  
+    // Порівнюємо кожне слово з другого рядка зі словами першого рядка
+    for (let word1 of words1) {
+      for (let word2 of words2) {
+        if (word1 === word2) {
+          return true; // Повертаємо true, якщо хоча б одне слово співпало
+        }
+      }
+    }
+    // Порівнюємо кожне слово з другого рядка зі словами першого рядка
+    for (let word1 of words1) {
+      for (let word3 of words3) {
+        if (word1 === word3) {
+          return true; // Повертаємо true, якщо хоча б одне слово співпало
+        }
+      }
+    }
+    // Порівнюємо кожне слово з другого рядка зі словами першого рядка
+    for (let word1 of words1) {
+      for (let word4 of words4) {
+        if (word1 === word4) {
+          return true; // Повертаємо true, якщо хоча б одне слово співпало
+        }
+      }
+    }
+    return false; // Якщо не знайшли співпадіння
+}
 

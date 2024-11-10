@@ -38,6 +38,7 @@ h2 {
     border-radius: 4px;
     font-size: 16px;
     transition: border-color 0.3s ease;
+    margin-bottom: 5px;
 }
 
 .styled-input::placeholder {
