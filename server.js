@@ -1,43 +1,48 @@
 import express from 'express';
-import fetch from 'node-fetch'; // Якщо ви використовуєте fetch
+import fetch from 'node-fetch'; // Для виконання HTTP запитів на сервері
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 const app = express();
-const apiKey = '781afd86b6bc4ccaadde529d54fe0d91'; // Ваш API ключ
+const PORT = 3000;
 
-// Додаємо заголовки CORS для кожного запиту
-app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*"); // Дозволяємо доступ з будь-якого домену
-    res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    res.header("Access-Control-Allow-Credentials", "true");
+// Отримуємо шлях до поточної директорії
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-    // Якщо запит є попереднім (OPTIONS), відразу відповідаємо 200
-    if (req.method === "OPTIONS") {
-        return res.status(200).end();
-    }
-    next();
-});
+// Налаштовуємо сервер для відправки статичних файлів (HTML, CSS, JS)
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Проксі-ендпоінт для запитів до News API
-app.get('/proxy/news', async (req, res) => {
-    const query = req.query.q; // Отримуємо параметр пошуку з запиту
-    const url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&apiKey=${apiKey}`;
+// Створення маршруту для проксирування запитів до NewsAPI
+app.get('/fetch-article', async (req, res) => {
+    const apiKey = '781afd86b6bc4ccaadde529d54fe0d91';
+    const query = req.query.q; // Отримання параметра q з URL
+
     try {
-        const response = await fetch(url);
+        const response = await fetch(`https://newsapi.org/v2/everything?q=${query}&apiKey=${apiKey}`);
         const data = await response.json();
-        res.json(data); // Відправляємо відповідь назад на фронтенд
+        res.json(data); // Відправка результату запиту клієнту
     } catch (error) {
-        res.status(500).json({ error: 'Помилка на сервері' });
+        res.status(500).json({ error: 'Failed to fetch data' });
     }
 });
 
-// Ваші інші маршрути
-app.get('/data', (req, res) => {
-    res.json({ message: "Дані отримано!" });
+// Маршрут для відправки HTML сторінки
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html')); // Надсилаємо HTML файл клієнту
 });
 
-// Запуск сервера
-app.listen(3000, () => {
-    console.log('Сервер запущено на http://localhost:3000');
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'cabinet_student.html')); // Надсилаємо HTML файл клієнту
 });
 
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'view_results.html')); // Надсилаємо HTML файл клієнту
+});
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'view_the_passed_result.html')); // Надсилаємо HTML файл клієнту
+});
+
+// Запуск сервера на порту 3000
+app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));

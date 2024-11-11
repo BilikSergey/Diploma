@@ -4,17 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Додавання питань</title>
-    <link rel="stylesheet" href="styleForCreateTest.css">
+    <link rel="stylesheet" href="/css/styleForCreateTest.css">
 </head>
 <body>
     <div class="dashboard-container">
         <div class="add-button-container">
-            <button id="id_submit_button" class="add-question-btn" onclick="sendResultOfStudent()">Submit</button>
+            <button id="id_submit_button" class="submit-btn">Submit</button>
         </div>
+        <h2><label id="id_input_test_name" class="styled-input"></h2>
         <div class="questions-container" id="questionsContainer"></div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.2/sql-wasm.js"></script>
-    <script src="database.js"></script>
-    <script src="pass_tests_script.js"></script>
+    <script src="/js/database.js"></script>
+    <script src="/js/view_the_passed_result_script.js"></script>
 </body>
 </html>

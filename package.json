@@ -5,5 +5,16 @@
     "mysql": "^2.18.1",
     "node-fetch": "^3.3.2",
     "sql.js": "^1.11.0"
-  }
+  },
+  "name": "to-oppose-the-risk-of-educational-losses",
+  "version": "1.0.0",
+  "main": "create_test.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
 }

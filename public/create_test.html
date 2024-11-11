@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Додавання питань</title>
-    <link rel="stylesheet" href="styleForCreateTest.css">
+    <link rel="stylesheet" href="/css/styleForCreateTest.css">
 </head>
 <body>
     <div class="dashboard-container">
@@ -16,7 +16,15 @@
         <div class="questions-container" id="questionsContainer"></div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.2/sql-wasm.js"></script>
-    <script src="database.js"></script>
-    <script src="edit_test_script.js"></script>
+    <script src="/js/database.js"></script>
+    <script src="/js/create_test.js"></script>
+    <script>
+        const currentObj = getUserData().role;
+        document.addEventListener("DOMContentLoaded", function() {
+            if(currentObj!=="teacher"){
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
 </body>
 </html>

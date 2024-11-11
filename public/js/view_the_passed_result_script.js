@@ -191,28 +191,25 @@ function getScoreOfStudent(i){
 }
 
 document.getElementById("id_submit_button").addEventListener("click", async () => {
-    // const sumOfQuestions = document.querySelectorAll('[data-question-id]').length;
-    // for(let i = 1;i<=sumOfQuestions;i++){
-    //     const questionForm = document.querySelector(`[data-question-id="${i}"]`);
-    //     const option = questionForm.querySelectorAll('.uncorrectOptions');
-    // }
-
     const text = document.getElementById("id_input_test_name").textContent;
-    const query = encodeURIComponent(text);
-
-    // Запит на наш проксі-сервер
-    const response = await fetch(`http://localhost:3000/proxy/news?q=${query}`);
-    const data = await response.json();
-
-    if (data && data.articles) {
-        const resultsContainer = document.getElementById('questionsContainer');
-        resultsContainer.innerHTML = '';
-        data.articles.forEach(article => {
-            const link = document.createElement('a');
-            link.href = article.url;
-            link.textContent = article.title;
-            resultsContainer.appendChild(link);
-        });
-    }
+    fetchArticle(text).then(article => {
+        if (article) {
+            console.log("Знайдена стаття:", article.title, article.url);
+        } else {
+            console.log("Не знайдено статей за запитом.");
+        }
+    });
 
 });
+
+async function fetchArticle(text) {
+    const query = encodeURIComponent(text);
+    const response = await fetch(`http://localhost:3000/fetch-article?q=${query}`);
+    const data = await response.json();
+
+    if (data.articles && data.articles.length > 0) {
+        return data.articles[0];
+    } else {
+        return null;
+    }
+}
