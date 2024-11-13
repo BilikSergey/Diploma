@@ -15,6 +15,20 @@ body {
     padding-top: 20px;
 }
 
+.container-prior-date {
+    display: flex;
+    justify-content: flex-start; /* Положення елементів по горизонталі */
+    gap: 10px; /* Відстань між елементами */
+    align-items: center; /* Центрує по вертикалі */
+}
+.container-prior-date2 {
+    display: flex;
+    justify-content: center; /* Положення елементів по горизонталі */
+    gap: 10px; /* Відстань між елементами */
+    align-items: center; /* Центрує по вертикалі */
+    flex-direction: column;
+}
+
 .dashboard-container {
     width: 600px;
     padding: 20px;
@@ -22,16 +36,20 @@ body {
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     position: relative;
+    /* position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); */
 }
 
 h2 {
     font-size: 24px;
-    margin-bottom: 95px;
+    /* margin-bottom: 95px; */
     color: #333;
 }
 
 .styled-input {
-    width: 71%; 
+    width: 70%; 
     display: block;
     padding: 12px;
     border: 1px solid #ddd;
@@ -71,6 +89,14 @@ h2 {
     align-items: center;
 }
 
+.date-input {
+    width: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+    margin-top: auto;
+}
+
 .add-question-btn {
     padding: 10px 20px;
     font-size: 16px;
@@ -83,8 +109,8 @@ h2 {
     margin-bottom: 5px;
     display: flex;
     flex-direction: column;
-    width: 155px;
-    align-items: center;
+    /* width: 30%;
+    align-items: center; */
 }
 
 .add-question-btn:hover {

@@ -105,6 +105,8 @@ function createTables() {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER,
             title TEXT NOT NULL,
+            time_of_starting TIMESTAMP,
+            time_of_ending TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id)
         );
     `);
@@ -135,7 +137,7 @@ function createTables() {
             test_id INTEGER,
             student_id INTEGER,
             teacher_name TEXT NOT NULL,
-            submission_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            submission_date TIMESTAMP,
             FOREIGN KEY (test_id) REFERENCES tests(id),
             FOREIGN KEY (student_id) REFERENCES users(id),
             FOREIGN KEY (teacher_name) REFERENCES users(username)
@@ -188,7 +190,7 @@ function viewDatabase() {
     if (resultTests.length > 0 && resultTests[0].values.length > 0) {
         console.log("tests Database");
         resultTests[0].values.forEach(row => {
-            console.log(`ID: ${row[0]}, user_id: ${row[1]}, title: ${row[2]}`);
+            console.log(`ID: ${row[0]}, user_id: ${row[1]}, title: ${row[2]}, StartTime: ${row[3]}, EndTime: ${row[4]}`);
         });
         console.log("___________________________________________");
     } else {
@@ -308,7 +310,7 @@ function viewTestsOfUser(id) {
         const resultTests = db.exec(queryTests);
         if (resultTests.length > 0) {
             resultTests[0].values.forEach(row => {
-                console.log(`ID: ${row[0]}, user_id: ${row[1]}, title: ${row[2]}`);
+                console.log(`ID: ${row[0]}, user_id: ${row[1]}, title: ${row[2]}, StartTime: ${row[3]}, EndTime: ${row[4]}`);
             });
         } else {
             console.log("Запис з таким id не знайдено.");
@@ -436,4 +438,4 @@ function sortForms(sortType) {
 
 function goBack() {
     window.history.back();
-  }
+}

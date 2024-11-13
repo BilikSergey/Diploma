@@ -1,6 +1,7 @@
 let db;
 let questionCount = 0;
 let checkForSubmit = 0;
+let checkBoxCount = 1;
 const userData = {};
 const submit_button = document.getElementById("id_submit_button");
 initDatabase();
@@ -30,6 +31,8 @@ function isCheckBoxsEmpty (form_of_CheckBox, checkboxes, is_checkBox_checked, i)
 
 function sendTestIntoDB(){
     const testName = document.getElementById("id_input_test_name");
+    const startTime = document.getElementById("test-datetime-start");
+    const endTime = document.getElementById("test-datetime-end");
     const stmtTitleTest = db.prepare("SELECT 1 FROM tests WHERE title = ? AND user_id = ?");
     stmtTitleTest.bind([testName.value, getUserData().id]); // Передаємо параметри без вкладеного масиву
     const TitleTestExists = stmtTitleTest.step();
@@ -66,7 +69,7 @@ function sendTestIntoDB(){
         }
     }
     const userData = getUserData();
-    addTestAndRedirect(userData.id, testName.value);
+    addTestAndRedirect(userData.id, testName.value, startTime.value, endTime.value);
 }
 
 function addTest() {
@@ -132,7 +135,7 @@ function getLastRecord(table_name) {
 
 function addQuestionForm(copyData = null) {
     const container = document.getElementById('questionsContainer');
-    let checkBoxCount = 1;
+    checkBoxCount = 1;
     submit_button.style.visibility = 'visible';
     questionCount++;
     checkForSubmit++;
@@ -221,6 +224,7 @@ function addQuestionForm(copyData = null) {
     const copyButton = document.createElement('button');
     copyButton.type = 'button';
     copyButton.textContent = 'Copy question';
+    const copyCount = questionCount;
     copyButton.onclick = () => {
         const questionData = {
             question: questionInput.value,
@@ -229,9 +233,12 @@ function addQuestionForm(copyData = null) {
             options: []
         };
         if (typeSelect.value === 'multipleChoice') {
-            for(i = 1; i<checkBoxCount; i++){
-                const optionInput = document.getElementById(`multipleChoiceText${questionCount}${i}[]`);
+            const getMultipleElement = document.getElementById(`id-div-multiple-choice-options${copyCount}`);
+            const copyCheckBoxCount = getMultipleElement.querySelectorAll("[type='checkbox']");
+            for(i = 1; i<=copyCheckBoxCount.length; i++){
+                const optionInput = document.getElementById(`multipleChoiceText${copyCount}${i}[]`);
                 questionData.options.push(optionInput.value);
+                console.log(questionData, copyCount, copyCheckBoxCount.length);
             }
         }
         addQuestionForm(questionData);
@@ -270,25 +277,43 @@ function toggleOptions(selectElement, questionForm) {
     }
 }
 
-function addCheckboxOption(id_checkBox_Fectch, container, checkBoxCount, optionText = '') { 
+function addCheckboxOption(id_checkBox_Fectch, container, secondCounter, optionText = '') { 
     const optionDiv = document.createElement('div');
     optionDiv.classList.add('multiple-choice-option');
 
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
-    checkbox.id = `multipleChoice${id_checkBox_Fectch}${checkBoxCount}[]`;
+    checkbox.id = `multipleChoice${id_checkBox_Fectch}${secondCounter}[]`;
 
     const optionInput = document.createElement('input');
     optionInput.type = 'text';
-    optionInput.id = `multipleChoiceText${id_checkBox_Fectch}${checkBoxCount}[]`;
+    optionInput.id = `multipleChoiceText${id_checkBox_Fectch}${secondCounter}[]`;
     optionInput.placeholder = 'Answer option';
     optionInput.value = optionText; // Якщо є текст варіанту, вставляємо його            
 
     const deleteButton = document.createElement('button');
     deleteButton.type = 'button';
     deleteButton.textContent = '❌'; // Хрестик для видалення
-    deleteButton.onclick = () => optionDiv.remove(); // Видаляє даний варіант
-    if(checkBoxCount===1){
+    deleteButton.onclick = () => {
+        const formCheckBoxs = document.getElementById(`id-div-multiple-choice-options${id_checkBox_Fectch}`);
+        const amountOfCheckBoxs = formCheckBoxs.querySelectorAll('[type="checkbox"]');
+        const stringID = String(optionInput.id);
+        const thirdFromEnd = stringID[stringID.length - 3];
+        const idForChange = Number(thirdFromEnd);
+        let j = idForChange
+        console.log(idForChange, amountOfCheckBoxs.length);
+        for(let i=idForChange;i<amountOfCheckBoxs.length;i++){
+            j++;
+            console.log(id_checkBox_Fectch, idForChange);
+            const amountOfCheckBoxsText = document.getElementById(`multipleChoiceText${id_checkBox_Fectch}${j}[]`);
+            amountOfCheckBoxsText.id = `multipleChoiceText${id_checkBox_Fectch}${i}[]`;
+            const amountOfCheckBoxs = document.getElementById(`multipleChoice${id_checkBox_Fectch}${j}[]`);
+            amountOfCheckBoxs.id = `multipleChoice${id_checkBox_Fectch}${i}[]`;
+        }
+        checkBoxCount = checkBoxCount-1;
+        optionDiv.remove();
+    }
+    if(secondCounter===1){
         deleteButton.style.visibility = "hidden";
     }
 
@@ -313,8 +338,8 @@ function highlightElement(element) {
     }, 2000);
 }
 
-async function addTestAndRedirect(userData, testName) {
-    await db.run("INSERT INTO tests (user_id, title) VALUES (?, ?)", [userData, testName]);
+async function addTestAndRedirect(userData, testName, StartTime, EndTime) {
+    await db.run("INSERT INTO tests (user_id, title, time_of_starting, time_of_ending) VALUES (?, ?, ?, ?)", [userData, testName, StartTime, EndTime]);
     addTest();
     await saveDatabase();
     setTimeout(() => {

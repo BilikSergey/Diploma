@@ -191,25 +191,34 @@ function getScoreOfStudent(i){
 }
 
 document.getElementById("id_submit_button").addEventListener("click", async () => {
-    const text = document.getElementById("id_input_test_name").textContent;
-    fetchArticle(text).then(article => {
-        if (article) {
-            console.log("Знайдена стаття:", article.title, article.url);
-        } else {
-            console.log("Не знайдено статей за запитом.");
+    for(let i = 1;i<=questionCount;i++){
+        let text = document.getElementById("id_input_test_name").textContent;
+        const questionText = document.getElementById(`question${i}`).value;
+        const scoreText = document.getElementById(`score${i}`).textContent;
+        const isAnswerCorrect = scoreText.split("/");
+        if(isAnswerCorrect[0]!==isAnswerCorrect[1]){
+            text += ' ' + questionText;
+            console.log(text);
+            const results = await getSearchResults(text);
+            displayResults(results);
         }
-    });
-
+    }
 });
 
-async function fetchArticle(text) {
-    const query = encodeURIComponent(text);
-    const response = await fetch(`http://localhost:3000/fetch-article?q=${query}`);
-    const data = await response.json();
+async function getSearchResults(query) {
+    const response = await fetch('http://localhost:3000/search', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: query })
+    });
 
-    if (data.articles && data.articles.length > 0) {
-        return data.articles[0];
-    } else {
-        return null;
-    }
+    const data = await response.json();
+    return data;
+}
+
+function displayResults(results) {
+    const resultsContainer = document.getElementById("questionsContainer");
+    resultsContainer.innerHTML = `<p>Результати пошуку: </p><pre>${results}</pre>`;
 }

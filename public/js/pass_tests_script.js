@@ -4,12 +4,16 @@ const testInfo = getTestData();
 let user_id;
 let test_id;
 let questionsData;
-
+let endTime;
+let endOfTest
+const timerInterval = setInterval(updateTimer, 1000);
 async function executeFunctions() {
     await initDatabase();
     user_id = db.exec(`SELECT id FROM users WHERE username = '${testInfo.author}'`);
     test_id = db.exec(`SELECT id FROM tests WHERE user_id = '${user_id[0].values[0][0]}' AND title = '${testInfo.title}'`);
     questionsData = db.exec(`SELECT * FROM questions WHERE test_id = ${test_id[0].values[0][0]}`);
+    endTime = db.exec(`SELECT time_of_ending FROM tests WHERE id = ?`, [test_id[0].values[0][0]])[0].values[0][0];
+    endOfTest = new Date(`${endTime}:00`).getTime();
     generateTest();
 }
 executeFunctions();
@@ -109,7 +113,8 @@ function getTestData(){
 }
 
 function sendResultOfStudent(){
-    db.run("INSERT INTO submissions (test_id, student_id, teacher_name) VALUES (?, ?, ?)", [test_id[0].values[0][0], getUserData().id, getTestData().author]);
+    const currentTime = new Date().toLocaleString('en-US', { timeZone: 'Europe/Kiev' });
+    db.run("INSERT INTO submissions (test_id, student_id, teacher_name, submission_date) VALUES (?, ?, ?, ?)", [test_id[0].values[0][0], getUserData().id, getTestData().author, currentTime]);
     let counterI = 0;
     for(let i = 1; i<=questionCount; i++){  
         let counterJ = 0;
@@ -174,3 +179,25 @@ async function addTestAndRedirect() {
     window.location.href = "cabinet_student.html";
     }, 500);
 }
+
+function updateTimer() {
+    const now = new Date().getTime();
+    const timeRemaining = endOfTest - now;
+    console.log(timeRemaining, endOfTest, now);
+
+    // Перевіряємо, чи час завершився
+    // if (timeRemaining <= 0) {
+    //   document.getElementById("id-label-timer").textContent = "Час завершився!";
+    //   clearInterval(timerInterval); // Зупиняємо таймер
+    //   sendResultOfStudent(); // Виконуємо дію після завершення таймера
+    //   return;
+    // }
+
+    // Обчислюємо хвилини і секунди
+    const hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+    console.log(timeRemaining, minutes, seconds);
+    // Відображаємо час на сторінці
+    document.getElementById("id-label-timer").textContent = `Залишилось часу: ${hours}h ${minutes}хв ${seconds}с`;
+  }
