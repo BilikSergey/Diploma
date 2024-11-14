@@ -291,3 +291,20 @@ h2 {
 .start-test-btn:hover {
     background-color: #0056b3;
 }
+
+.disable-start-test-btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    color: white;
+    background-color: red;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 200px;
+    height: 40px;
+}
+
+.disable-start-test-btn:hover {
+    background-color: brown;
+}
