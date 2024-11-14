@@ -6,7 +6,8 @@ let test_id;
 let questionsData;
 let endTime;
 let endOfTest
-const timerInterval = setInterval(updateTimer, 1000);
+let timerInterval;
+
 async function executeFunctions() {
     await initDatabase();
     user_id = db.exec(`SELECT id FROM users WHERE username = '${testInfo.author}'`);
@@ -14,6 +15,7 @@ async function executeFunctions() {
     questionsData = db.exec(`SELECT * FROM questions WHERE test_id = ${test_id[0].values[0][0]}`);
     endTime = db.exec(`SELECT time_of_ending FROM tests WHERE id = ?`, [test_id[0].values[0][0]])[0].values[0][0];
     endOfTest = new Date(`${endTime}:00`).getTime();
+    if(endTime) timerInterval = setInterval(updateTimer, 1000);
     generateTest();
 }
 executeFunctions();
@@ -126,14 +128,19 @@ function sendResultOfStudent(){
         const falseRadio = document.getElementById(`id_false${i}`);
         if(form_checkBox){
             const checkboxes = form_checkBox.querySelectorAll('input[type="checkbox"]');
+            let arrayForCheckingIfChecked = 0;
             for(let j = 1; j<=checkboxes.length; j++){           
                 const response_checkBox = document.getElementById(`multipleChoice${i}${j}[]`);
                 const optionChecked = db.exec(`SELECT * FROM options WHERE question_id = ${questionsData[0].values[counterI][0]} AND is_correct = "true"`)[0].values.length;
                 if(response_checkBox.checked&&optionData[0].values[counterJ][4]==="true"){
                     db.run("INSERT INTO option_responses (test_id, submission_id, question_id, selected_option_id, score) VALUES (?, ?, ?, ?, ?)", [test_id[0].values[0][0], getLastRecord("submissions")[0], questionsData[0].values[counterI][0], optionData[0].values[counterJ][0], ((questionsData[0].values[counterI][4])/optionChecked)]);
+                    arrayForCheckingIfChecked = 1;
                 } else if(response_checkBox.checked&&optionData[0].values[counterJ][4]==="false"){
                     db.run("INSERT INTO option_responses (test_id, submission_id, question_id, selected_option_id, score) VALUES (?, ?, ?, ?, ?)", [test_id[0].values[0][0], getLastRecord("submissions")[0], questionsData[0].values[counterI][0], optionData[0].values[counterJ][0], 0]);
-                } 
+                    arrayForCheckingIfChecked = 1;
+                } else if(j===checkboxes.length&&arrayForCheckingIfChecked===0){
+                    db.run("INSERT INTO option_responses (test_id, submission_id, question_id, selected_option_id, score) VALUES (?, ?, ?, ?, ?)", [test_id[0].values[0][0], getLastRecord("submissions")[0], questionsData[0].values[counterI][0], 0, 0]);
+                }
                 counterJ++;
             }
         } else {     
@@ -201,5 +208,5 @@ function updateTimer() {
     const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
     console.log(timeRemaining, minutes, seconds);
     // Відображаємо час на сторінці
-    document.getElementById("id-label-timer").textContent = `Залишилось часу: ${hours}h ${minutes}m ${seconds}s`;
+    document.getElementById("id-label-timer").textContent = `Time remaining: ${hours}h ${minutes}m ${seconds}s`;
 }

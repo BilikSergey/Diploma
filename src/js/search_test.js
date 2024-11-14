@@ -28,7 +28,6 @@ document.getElementById("searchInput").addEventListener("input", () => {
     });
     sqlQuery += conditions.join(' OR ');  // Об'єднуємо умови через OR для пошуку хоча б одного співпадіння
     const resultsTeachers = db.exec(sqlQuery);
-
     switch(true){
         case(searchInput.length!==0 && resultsTests.length!==0 && resultsTeachers.length!==0 && resultsTeachers[0].values[0][4] === "teacher"):
             resultOfTestsSearch (resultsTests);
@@ -107,17 +106,18 @@ function addQueryFromDB(title, author, score, startTime, endTime){
     btnQueryContainer.classList.add('button-container');
     const btnQuery = document.createElement('button');
     btnQuery.textContent = 'Pass the test';
-    btnQuery.classList.add('start-test-btn');
+    
     const now = new Date();
     const timeForStart = new Date(startTime); 
     const timeForEnd = new Date(endTime); 
     if(timeForStart>now){
-        btnQuery.style.background = "red";
+        btnQuery.classList.add('disable-start-test-btn');
         btnQuery.onclick = () => alert("The time for passing the exam has not come");
     } else if(timeForEnd<now){
-        btnQuery.style.background = "red";
+        btnQuery.classList.add('disable-start-test-btn');
         btnQuery.onclick = () => alert("The time for passing the exam has ended");
     }else {
+        btnQuery.classList.add('start-test-btn');
         btnQuery.onclick = () => {
             localStorage.setItem("title", title);
             localStorage.setItem("author", author);
@@ -134,6 +134,9 @@ function addQueryFromDB(title, author, score, startTime, endTime){
 
 function resultOfTestsSearch (resultsTests){
     for(let i=0; i<resultsTests[0].values.length; i++){
+        const result = db.exec("SELECT * FROM submissions WHERE test_id = ?", [resultsTests[0].values[i][0]]);
+        const isTestAlreadyPassedByResultTests = result.length > 0 && result[0].values.length > 0 ? result[0].values[0][0] : null;
+        if(isTestAlreadyPassedByResultTests) continue;
         const title = resultsTests[0].values[i][2];
         const author = db.exec("SELECT username FROM users WHERE id = ?", [resultsTests[0].values[i][1]])[0].values[0][0];
         const startTime = db.exec("SELECT time_of_starting FROM tests WHERE id = ?", [resultsTests[0].values[i][0]])[0].values[0][0];
@@ -151,9 +154,13 @@ function resultOfTestsSearch (resultsTests){
 function resultOfTeacherSearch (resultsTeachers){
     const amountOfTestsOfUsers = db.exec("SELECT * FROM tests WHERE user_id = ?", [resultsTeachers[0].values[0][0]]);
     for(let i=0; i<amountOfTestsOfUsers[0].values.length; i++){
+        const id_test = db.exec("SELECT id FROM tests WHERE user_id = ?", [resultsTeachers[0].values[0][0]])[0].values[i][0];
+        console.log(id_test);
+        const result = db.exec("SELECT * FROM submissions WHERE test_id = ?", [id_test]);
+        const isTestAlreadyPassedByResultTeacher = result.length > 0 && result[0].values.length > 0 ? result[0].values[0][0] : null;
+        if (isTestAlreadyPassedByResultTeacher) continue;
         const title = db.exec("SELECT title FROM tests WHERE user_id = ?", [resultsTeachers[0].values[0][0]])[0].values[i][0];                
         const author = resultsTeachers[0].values[0][1];
-        const id_test = db.exec("SELECT id FROM tests WHERE user_id = ?", [resultsTeachers[0].values[0][0]])[0].values[i][0];
         const startTime = db.exec("SELECT time_of_starting FROM tests WHERE id = ?", [id_test])[0].values[0][0];
         const endTime = db.exec("SELECT time_of_ending FROM tests WHERE id = ?", [id_test])[0].values[0][0];
         const amountOfQuestion = db.exec("SELECT * FROM questions WHERE test_id = ?", [id_test]);
