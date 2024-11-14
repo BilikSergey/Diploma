@@ -67,19 +67,6 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'src', 'index.html'));
 });
 
-// Додаткові маршрути для різних сторінок
-app.get('/cabinet_student', (req, res) => {
-    res.sendFile(path.join(__dirname, 'src', 'cabinet_student.html'));
-});
-
-app.get('/view_results', (req, res) => {
-    res.sendFile(path.join(__dirname, 'src', 'view_results.html'));
-});
-
-app.get('/view_the_passed_result', (req, res) => {
-    res.sendFile(path.join(__dirname, 'src', 'view_the_passed_result.html'));
-});
-
 // Запуск сервера на порту 3000
 app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
 
