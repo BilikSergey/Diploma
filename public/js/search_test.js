@@ -111,10 +111,13 @@ function addQueryFromDB(title, author, score, startTime, endTime){
     const now = new Date();
     const timeForStart = new Date(startTime); 
     const timeForEnd = new Date(endTime); 
-    if(timeForStart>now||timeForEnd<now){
+    if(timeForStart>now){
         btnQuery.style.background = "red";
         btnQuery.onclick = () => alert("The time for passing the exam has not come");
-    } else {
+    } else if(timeForEnd<now){
+        btnQuery.style.background = "red";
+        btnQuery.onclick = () => alert("The time for passing the exam has ended");
+    }else {
         btnQuery.onclick = () => {
             localStorage.setItem("title", title);
             localStorage.setItem("author", author);

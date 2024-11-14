@@ -185,13 +185,15 @@ function updateTimer() {
     const timeRemaining = endOfTest - now;
     console.log(timeRemaining, endOfTest, now);
 
-    // Перевіряємо, чи час завершився
-    // if (timeRemaining <= 0) {
-    //   document.getElementById("id-label-timer").textContent = "Час завершився!";
-    //   clearInterval(timerInterval); // Зупиняємо таймер
-    //   sendResultOfStudent(); // Виконуємо дію після завершення таймера
-    //   return;
-    // }
+    if (timeRemaining <= 0) {
+        setTimeout(() => {
+            alert("Time has passed!");
+        }, 500);
+        document.getElementById("id-label-timer").textContent = "Time has passed!";
+        clearInterval(timerInterval); // Зупиняємо таймер
+        sendResultOfStudent(); // Виконуємо дію після завершення таймера
+        return;
+    }
 
     // Обчислюємо хвилини і секунди
     const hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -199,5 +201,5 @@ function updateTimer() {
     const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
     console.log(timeRemaining, minutes, seconds);
     // Відображаємо час на сторінці
-    document.getElementById("id-label-timer").textContent = `Залишилось часу: ${hours}h ${minutes}хв ${seconds}с`;
-  }
+    document.getElementById("id-label-timer").textContent = `Залишилось часу: ${hours}h ${minutes}m ${seconds}s`;
+}
