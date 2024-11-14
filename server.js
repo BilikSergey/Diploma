@@ -16,7 +16,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Налаштовуємо сервер для відправки статичних файлів (HTML, CSS, JS)
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'src')));
 app.use(cors()); 
 app.use(express.json());
 
@@ -64,20 +64,20 @@ app.post('/search', async (req, res) => {
 
 // Маршрут для відправки статичних HTML сторінок
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'src', 'index.html'));
 });
 
 // Додаткові маршрути для різних сторінок
 app.get('/cabinet_student', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'cabinet_student.html'));
+    res.sendFile(path.join(__dirname, 'src', 'cabinet_student.html'));
 });
 
 app.get('/view_results', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'view_results.html'));
+    res.sendFile(path.join(__dirname, 'src', 'view_results.html'));
 });
 
 app.get('/view_the_passed_result', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'view_the_passed_result.html'));
+    res.sendFile(path.join(__dirname, 'src', 'view_the_passed_result.html'));
 });
 
 // Запуск сервера на порту 3000
