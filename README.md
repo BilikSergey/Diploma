@@ -9,6 +9,7 @@ Website for creating and passing tests for students
 - Install any code editor (VS Code) or IDE.
 
 - Clone the project:
+
 ```bash
 git clone https://github.com/BilikSergey/Diploma.git
 ```
