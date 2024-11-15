@@ -1,70 +1,72 @@
 body {
-    font-family: Arial, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #f4f4f4;
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f4f4f4;
 }
 
 .container {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .submit_btn {
-    padding: 10px 20px;
-    font-size: 16px;
-    color: white;
-    background-color: #007bff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+  padding: 10px 20px;
+  font-size: 16px;
+  color: white;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .styled-input {
-    width: 100%;
-    padding: 5px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 16px;
-    transition: border-color 0.3s ease;
+  width: 100%;
+  padding: 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  transition: border-color 0.3s ease;
 }
 
 .styled-input::placeholder {
-    color: #aaa;
-    opacity: 1;
+  color: #aaa;
+  opacity: 1;
 }
 
 .styled-input:focus {
-    border-color: #007bff; /* колір рамки при фокусі */
-    outline: none; /* видаляє контур */
+  border-color: #007bff; /* колір рамки при фокусі */
+  outline: none; /* видаляє контур */
 }
 
-.styled-selector{
-    width: 100%;
-    margin-top: 8px;
-    margin-bottom: 12px;
-    padding: 10px;
-    font-size: 14px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+.styled-selector {
+  width: 100%;
+  margin-top: 8px;
+  margin-bottom: 12px;
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
 }
 
 .error-message {
-    position: absolute; /* Встановлює абсолютну позицію */
-    top: 15%; /* Встановлює верхній відступ 50% */
-    left: 50%; /* Встановлює лівий відступ 50% */
-    transform: translate(-50%, -50%); /* Центрує елемент по вертикалі та горизонталі */
-    margin-top: 10px;
-    padding: 10px;
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-    border-radius: 4px;
-    display: none; /* Сховати за замовчуванням */
-    
+  position: absolute; /* Встановлює абсолютну позицію */
+  top: 15%; /* Встановлює верхній відступ 50% */
+  left: 50%; /* Встановлює лівий відступ 50% */
+  transform: translate(
+    -50%,
+    -50%
+  ); /* Центрує елемент по вертикалі та горизонталі */
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  display: none; /* Сховати за замовчуванням */
 }
