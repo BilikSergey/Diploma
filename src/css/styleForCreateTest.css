@@ -1,310 +1,313 @@
 * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
-    background-color: #f4f4f9;
-    font-family: Arial, sans-serif;
-    overflow-y: scroll;
-    padding-top: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  background-color: #f4f4f9;
+  font-family: Arial, sans-serif;
+  overflow-y: scroll;
+  padding-top: 20px;
 }
 
 .container-prior-date {
-    display: flex;
-    justify-content: flex-start; /* Положення елементів по горизонталі */
-    gap: 10px; /* Відстань між елементами */
-    align-items: center; /* Центрує по вертикалі */
+  display: flex;
+  justify-content: flex-start; /* Положення елементів по горизонталі */
+  gap: 10px; /* Відстань між елементами */
+  align-items: center; /* Центрує по вертикалі */
 }
 .container-prior-date2 {
-    display: flex;
-    justify-content: center; /* Положення елементів по горизонталі */
-    gap: 10px; /* Відстань між елементами */
-    align-items: center; /* Центрує по вертикалі */
-    flex-direction: column;
+  display: flex;
+  justify-content: center; /* Положення елементів по горизонталі */
+  gap: 10px; /* Відстань між елементами */
+  align-items: center; /* Центрує по вертикалі */
+  flex-direction: column;
 }
 
 .dashboard-container {
-    width: 600px;
-    padding: 20px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    position: relative;
-    /* position: absolute;
+  width: 600px;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  /* position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%); */
 }
 
 h2 {
-    font-size: 24px;
-    /* margin-bottom: 95px; */
-    color: #333;
+  font-size: 24px;
+  /* margin-bottom: 95px; */
+  color: #333;
 }
 
 .styled-input {
-    width: 70%; 
-    display: block;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 16px;
-    transition: border-color 0.3s ease;
-    margin-bottom: 5px;
+  width: 70%;
+  display: block;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+  margin-bottom: 5px;
 }
 
 .styled-input::placeholder {
-    color: #aaa; /* колір плейсхолдера */
-    opacity: 1; /* робить плейсхолдер повністю видимим */
+  color: #aaa; /* колір плейсхолдера */
+  opacity: 1; /* робить плейсхолдер повністю видимим */
 }
 
 .styled-input:focus {
-    border-color: #007bff; /* колір рамки при фокусі */
-    outline: none; /* видаляє контур */
+  border-color: #007bff; /* колір рамки при фокусі */
+  outline: none; /* видаляє контур */
 }
 
 .add-button-container {
-    position: absolute;
-    top: 20px;
-    right: 20px;
+  position: absolute;
+  top: 20px;
+  right: 20px;
 }
 
 .submit-btn {
-    padding: 10px 20px;
-    font-size: 16px;
-    color: white;
-    background-color: #007bff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    visibility: hidden;
-    width: 155px;
-    align-items: center;
+  padding: 10px 20px;
+  font-size: 16px;
+  color: white;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  visibility: hidden;
+  width: 155px;
+  align-items: center;
 }
 
 .date-input {
-    width: auto;
-    display: flex;
-    justify-content: center;
-    align-items: center; 
-    margin-top: auto;
+  width: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: auto;
 }
 
 .add-question-btn {
-    padding: 10px 20px;
-    font-size: 16px;
-    color: white;
-    background-color: #007bff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    margin-bottom: 5px;
-    display: flex;
-    flex-direction: column;
-    /* width: 30%;
+  padding: 10px 20px;
+  font-size: 16px;
+  color: white;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-bottom: 5px;
+  display: flex;
+  flex-direction: column;
+  /* width: 30%;
     align-items: center; */
 }
 
 .add-question-btn:hover {
-    background-color: #0056b3;
+  background-color: #0056b3;
 }
 
 .questions-container {
-    margin-top: 60px;
-    max-height: 80vh;
-    overflow-y: auto;
+  margin-top: 60px;
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
 .question-form {
-    border: 1px solid #ddd;
-    padding: 15px;
-    margin-bottom: 20px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    background-color: #fff;
-    text-align: left;
+  border: 1px solid #ddd;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  text-align: left;
 }
 
 .question-form label {
-    font-weight: bold;
-    color: #333;
+  font-weight: bold;
+  color: #333;
 }
 
 .question-form input,
 .question-form select,
 .question-form button {
-    width: 100%;
-    margin-top: 8px;
-    margin-bottom: 12px;
-    padding: 10px;
-    font-size: 14px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+  width: 100%;
+  margin-top: 8px;
+  margin-bottom: 12px;
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
 }
 
 .question-form button {
-    background-color: #007bff;
-    color: white;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .question-form button:hover {
-    background-color: #0056b3;
+  background-color: #0056b3;
 }
 
 .options-container {
-    display: flex;
-    margin-top: 10px;
-    padding: 10px;
-    border-radius: 5px;
-    background-color: #f9f9f9;
+  display: flex;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 5px;
+  background-color: #f9f9f9;
 }
 
 .true-false-options {
-    display: flex;
-    align-items: center;
-    gap: 15px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
 .true-false-label {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-weight: normal;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: normal;
 }
 
 .multiple-choice-option {
-    display: flex;
-    align-items: center;
-    margin-top: 5px; /* Відступ між варіантами */
+  display: flex;
+  align-items: center;
+  margin-top: 5px; /* Відступ між варіантами */
 }
 
 .multiple-choice-option input[type="text"] {
-    flex-grow: 1; /* Займає доступний простір */
-    margin-left: 5px; /* Відступ зліва від чекбокса */
-    margin-right: 5px; /* Зменшений відступ праворуч */
+  flex-grow: 1; /* Займає доступний простір */
+  margin-left: 5px; /* Відступ зліва від чекбокса */
+  margin-right: 5px; /* Зменшений відступ праворуч */
 }
 
 .multiple-choice-option input[type="checkbox"] {
-    margin: 0; /* Прибираємо відступи */
+  margin: 0; /* Прибираємо відступи */
 }
 
 .multiple-choice-option button {
-    background: none;
-    border: none;
-    color: red; /* Колір хрестика */
-    cursor: pointer;
-    font-size: 16px; /* Розмір шрифту для хрестика */
-    padding: 0; /* Прибираємо відступи */
-    width: 24px; /* Фіксована ширина для кнопки видалення */
-    height: 24px; /* Фіксована висота для кнопки видалення */
+  background: none;
+  border: none;
+  color: red; /* Колір хрестика */
+  cursor: pointer;
+  font-size: 16px; /* Розмір шрифту для хрестика */
+  padding: 0; /* Прибираємо відступи */
+  width: 24px; /* Фіксована ширина для кнопки видалення */
+  height: 24px; /* Фіксована висота для кнопки видалення */
 }
 
 .score-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
 }
 .button-container {
-    display: flex;
-    justify-content: space-between; /* або flex-start */
-    margin-top: 20px; /* відстань від інших елементів */
+  display: flex;
+  justify-content: space-between; /* або flex-start */
+  margin-top: 20px; /* відстань від інших елементів */
 }
 @keyframes highlightAnimation {
-    0% { background-color: red; }
-    100% { background-color: transparent; }
+  0% {
+    background-color: red;
+  }
+  100% {
+    background-color: transparent;
+  }
 }
 
 .correctOptions {
-    background-color: greenyellow; 
+  background-color: greenyellow;
 }
 
 .uncorrectOptions {
-    background-color: red; 
+  background-color: red;
 }
 
 .highlight-animated {
-    animation: highlightAnimation 2s forwards;
+  animation: highlightAnimation 2s forwards;
 }
 
-
 .results-form {
-    border: 1px solid #ddd;
-    padding: 15px;
-    margin-bottom: 20px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    background-color: #fff;
-    text-align: left;
+  border: 1px solid #ddd;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  text-align: left;
 }
 
 .test-info {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
 }
 
 .test-detail {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 16px;
 }
 
 .test-title {
-    text-align: right;
+  text-align: right;
 }
 
 .test-detail label {
-    font-weight: bold;
-    color: #333;
+  font-weight: bold;
+  color: #333;
 }
 
 .test-detail span {
-    color: #555;
+  color: #555;
 }
 
 .start-test-btn {
-    padding: 10px 20px;
-    font-size: 16px;
-    color: white;
-    background-color: #007bff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    width: 200px;
-    height: 40px;
+  padding: 10px 20px;
+  font-size: 16px;
+  color: white;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: 200px;
+  height: 40px;
 }
 
 .start-test-btn:hover {
-    background-color: #0056b3;
+  background-color: #0056b3;
 }
 
 .disable-start-test-btn {
-    padding: 10px 20px;
-    font-size: 16px;
-    color: white;
-    background-color: red;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    width: 200px;
-    height: 40px;
+  padding: 10px 20px;
+  font-size: 16px;
+  color: white;
+  background-color: red;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: 200px;
+  height: 40px;
 }
 
 .disable-start-test-btn:hover {
-    background-color: brown;
+  background-color: brown;
 }

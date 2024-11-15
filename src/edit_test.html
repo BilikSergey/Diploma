@@ -1,31 +1,56 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Додавання питань</title>
-    <link rel="stylesheet" href="/css/styleForCreateTest.css">
-</head>
-<body>
+    <link rel="stylesheet" href="/css/styleForCreateTest.css" />
+  </head>
+  <body>
     <div class="dashboard-container">
-        <div class="container-prior-date">
-            <input id="id_input_test_name" type="text" class="styled-input" placeholder="Test name">
-            <button class="add-question-btn" onclick="addQuestionForm()">Add question</button>
+      <div class="container-prior-date">
+        <input
+          id="id_input_test_name"
+          type="text"
+          class="styled-input"
+          placeholder="Test name"
+        />
+        <button class="add-question-btn" onclick="addQuestionForm()">
+          Add question
+        </button>
+      </div>
+      <div class="container-prior-date">
+        <button onclick="goBack()" class="add-question-btn" width="30%">
+          Previous page
+        </button>
+        <div class="container-prior-date2">
+          <label>Start time</label>
+          <input
+            type="datetime-local"
+            class="date-input"
+            id="test-datetime-start"
+            name="test-datetime"
+          />
+          <label>End time</label>
+          <input
+            type="datetime-local"
+            class="date-input"
+            id="test-datetime-end"
+            name="test-datetime"
+          />
         </div>
-        <div class="container-prior-date">
-            <button onclick="goBack()" class="add-question-btn" width="30%">Previous page</button>
-            <div class="container-prior-date2">
-                <label>Start time</label>
-                <input type="datetime-local" class="date-input" id="test-datetime-start" name="test-datetime"></input>
-                <label>End time</label>
-                <input type="datetime-local" class="date-input" id="test-datetime-end" name="test-datetime"></input>
-            </div>
-            <button id="id_submit_button" class="submit-btn" onclick="sendTestIntoDB()">Submit</button>
-        </div>
-        <div class="questions-container" id="questionsContainer"></div>
+        <button
+          id="id_submit_button"
+          class="submit-btn"
+          onclick="sendTestIntoDB()"
+        >
+          Submit
+        </button>
+      </div>
+      <div class="questions-container" id="questionsContainer"></div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.2/sql-wasm.js"></script>
     <script src="/js/database.js"></script>
     <script src="/js/edit_test_script.js"></script>
-</body>
+  </body>
 </html>
