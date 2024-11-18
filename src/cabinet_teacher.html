@@ -36,20 +36,7 @@
         </button>
       </div>
     </div>
-    <script src="/js/database.js"></script>
     <script>
-      const currentObj = getUserData().role;
-      document.addEventListener("DOMContentLoaded", function () {
-        if (currentObj !== "teacher") {
-          window.location.href = "index.html";
-        }
-      });
-      document
-        .getElementById("id_exit_button")
-        .addEventListener("click", () => {
-          clearUserData();
-          clearTestData();
-        });
     </script>
   </body>
 </html>

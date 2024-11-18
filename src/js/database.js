@@ -1,30 +1,167 @@
-/* eslint-disable no-undef */
-/* eslint-disable no-unused-vars */
-// Ініціалізація бази даних
-async function initDatabase() {
-  const SQL = await initSqlJs({
-    locateFile: (file) =>
-      `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.2/sql-wasm.wasm`,
-  });
-  db = new SQL.Database();
-  createTables();
-
-  // Спробуємо завантажити базу даних з IndexedDB
-  const storedData = await loadDatabase();
-  if (storedData) {
-    db = new SQL.Database(new Uint8Array(storedData));
+export class DatabaseManager {
+  constructor() {
+    this.db = null;
   }
-}
 
-// Завантажити базу даних з IndexedDB
-async function loadDatabase() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open("DatabaseDiploma", 1);
-
-    request.onerror = (event) => {
-      console.error("Database error:", event);
-      resolve(null);
+  getUserData() {
+    return {
+      id: localStorage.getItem("userId"),
+      name: localStorage.getItem("userName"),
+      email: localStorage.getItem("userEmail"),
+      password: localStorage.getItem("userPassword"),
+      role: localStorage.getItem("userRole"),
     };
+  }
+
+  async init() {
+    // eslint-disable-next-line no-undef
+    const SQL = await initSqlJs({
+      // eslint-disable-next-line no-unused-vars
+      locateFile: (file) =>
+        `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.2/sql-wasm.wasm`,
+    });
+    this.db = new SQL.Database();
+    this.createTables();
+
+    // Спробуємо завантажити базу даних з IndexedDB
+    const storedData = await this.loadDatabase();
+    if (storedData) {
+      this.db = new SQL.Database(new Uint8Array(storedData));
+    }
+  }
+
+  createTables() {
+    this.db.run(`
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            email TEXT NOT NULL UNIQUE,
+            password TEXT NOT NULL,
+            role TEXT NOT NULL
+        );
+    `);
+    this.db.run(`
+          CREATE TABLE IF NOT EXISTS tests (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              user_id INTEGER,
+              title TEXT NOT NULL,
+              time_of_starting TIMESTAMP,
+              time_of_ending TIMESTAMP,
+              FOREIGN KEY (user_id) REFERENCES users(id)
+          );
+      `);
+    this.db.run(`
+          CREATE TABLE IF NOT EXISTS questions (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              test_id INTEGER,
+              text TEXT NOT NULL,
+              response_type TEXT NOT NULL,
+              rating INTEGER,
+              FOREIGN KEY (test_id) REFERENCES tests(id)
+          );
+      `);
+    this.db.run(`
+          CREATE TABLE IF NOT EXISTS options (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              question_id INTEGER,
+              test_id INTEGER,
+              text TEXT NOT NULL,
+              is_correct TEXT NOT NULL,
+              FOREIGN KEY (question_id) REFERENCES questions(id),
+              FOREIGN KEY (test_id) REFERENCES tests(id)
+          );
+      `);
+    this.db.run(`
+          CREATE TABLE IF NOT EXISTS submissions (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              test_id INTEGER,
+              student_id INTEGER,
+              teacher_name TEXT NOT NULL,
+              submission_date TIMESTAMP,
+              FOREIGN KEY (test_id) REFERENCES tests(id),
+              FOREIGN KEY (student_id) REFERENCES users(id),
+              FOREIGN KEY (teacher_name) REFERENCES users(username)
+          );
+      `);
+    this.db.run(`
+          CREATE TABLE IF NOT EXISTS responses (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              test_id INTEGER,
+              submission_id INTEGER,
+              question_id INTEGER,
+              FOREIGN KEY (test_id) REFERENCES tests(id),
+              FOREIGN KEY (submission_id) REFERENCES submissions(id),
+              FOREIGN KEY (question_id) REFERENCES questions(id)
+          );
+      `);
+    this.db.run(`
+          CREATE TABLE IF NOT EXISTS option_responses (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              test_id INTEGER,
+              submission_id INTEGER,
+              question_id INTEGER,
+              selected_option_id INTEGER,
+              score INTEGER,
+              FOREIGN KEY (test_id) REFERENCES tests(id),
+              FOREIGN KEY (submission_id) REFERENCES submissions(id),
+              FOREIGN KEY (question_id) REFERENCES questions(id)
+          );
+      `);
+  }
+
+  async loadDatabase() {
+    // eslint-disable-next-line no-unused-vars
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open("DatabaseDiploma", 1);
+
+      request.onsuccess = (event) => {
+        const db = event.target.result;
+        const transaction = db.transaction(
+          [
+            "usersDatabase",
+            "testsDatabase",
+            "questionsDatabase",
+            "optionsDatabase",
+          ],
+          "readwrite"
+        );
+        const usersStore = transaction.objectStore("usersDatabase");
+        const testsStore = transaction.objectStore("testsDatabase");
+        const questionsStore = transaction.objectStore("questionsDatabase");
+        const optionsStore = transaction.objectStore("optionsDatabase");
+
+        const getRequestUsers = usersStore.get(1);
+        const getRequestTests = testsStore.get(1);
+        const getRequestQuestions = questionsStore.get(1);
+        const getRequestOptions = optionsStore.get(1);
+
+        getRequestUsers.onsuccess = (event) => {
+          resolve(event.target.result ? event.target.result.data : null);
+        };
+        getRequestTests.onsuccess = (event) => {
+          resolve(event.target.result ? event.target.result.data : null);
+        };
+        getRequestQuestions.onsuccess = (event) => {
+          resolve(event.target.result ? event.target.result.data : null);
+        };
+        getRequestOptions.onsuccess = (event) => {
+          resolve(event.target.result ? event.target.result.data : null);
+        };
+      };
+
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        db.createObjectStore("usersDatabase", { keyPath: "id" });
+        db.createObjectStore("testsDatabase", { keyPath: "id" });
+        db.createObjectStore("questionsDatabase", { keyPath: "id" });
+        db.createObjectStore("optionsDatabase", { keyPath: "id" });
+      };
+    });
+  }
+
+  saveDatabase() {
+    const binaryArray = this.db.export();
+    const request = indexedDB.open("DatabaseDiploma", 1);
 
     request.onsuccess = (event) => {
       const db = event.target.result;
@@ -35,30 +172,16 @@ async function loadDatabase() {
           "questionsDatabase",
           "optionsDatabase",
         ],
-        "readwrite",
+        "readwrite"
       );
       const usersStore = transaction.objectStore("usersDatabase");
       const testsStore = transaction.objectStore("testsDatabase");
       const questionsStore = transaction.objectStore("questionsDatabase");
       const optionsStore = transaction.objectStore("optionsDatabase");
-
-      const getRequestUsers = usersStore.get(1);
-      const getRequestTests = testsStore.get(1);
-      const getRequestQuestions = questionsStore.get(1);
-      const getRequestOptions = optionsStore.get(1);
-
-      getRequestUsers.onsuccess = (event) => {
-        resolve(event.target.result ? event.target.result.data : null);
-      };
-      getRequestTests.onsuccess = (event) => {
-        resolve(event.target.result ? event.target.result.data : null);
-      };
-      getRequestQuestions.onsuccess = (event) => {
-        resolve(event.target.result ? event.target.result.data : null);
-      };
-      getRequestOptions.onsuccess = (event) => {
-        resolve(event.target.result ? event.target.result.data : null);
-      };
+      usersStore.put({ id: 1, data: binaryArray });
+      testsStore.put({ id: 1, data: binaryArray });
+      questionsStore.put({ id: 1, data: binaryArray });
+      optionsStore.put({ id: 1, data: binaryArray });
     };
 
     request.onupgradeneeded = (event) => {
@@ -68,440 +191,272 @@ async function loadDatabase() {
       db.createObjectStore("questionsDatabase", { keyPath: "id" });
       db.createObjectStore("optionsDatabase", { keyPath: "id" });
     };
-  });
+  }
 }
 
-// Зберегти базу даних в IndexedDB
-async function saveDatabase() {
-  const binaryArray = db.export();
-  const request = indexedDB.open("DatabaseDiploma", 1);
+export class TablesManager {
+  constructor(database) {
+    this.database = database;
+  }
 
-  request.onerror = (event) => {
-    console.error("Database error:", event);
-  };
-
-  request.onsuccess = (event) => {
-    const db = event.target.result;
-    const transaction = db.transaction(
-      [
-        "usersDatabase",
-        "testsDatabase",
-        "questionsDatabase",
-        "optionsDatabase",
-      ],
-      "readwrite",
+  addIntoTable(tableName, columnsString, questionMarkString, valuesArray) {
+    this.database.db.run(
+      `INSERT INTO ${tableName} (${columnsString}) VALUES (${questionMarkString})`,
+      valuesArray
     );
-    const usersStore = transaction.objectStore("usersDatabase");
-    const testsStore = transaction.objectStore("testsDatabase");
-    const questionsStore = transaction.objectStore("questionsDatabase");
-    const optionsStore = transaction.objectStore("optionsDatabase");
-    usersStore.put({ id: 1, data: binaryArray });
-    testsStore.put({ id: 1, data: binaryArray });
-    questionsStore.put({ id: 1, data: binaryArray });
-    optionsStore.put({ id: 1, data: binaryArray });
-  };
+  }
 
-  request.onupgradeneeded = (event) => {
-    const db = event.target.result;
-    db.createObjectStore("usersDatabase", { keyPath: "id" });
-    db.createObjectStore("testsDatabase", { keyPath: "id" });
-    db.createObjectStore("questionsDatabase", { keyPath: "id" });
-    db.createObjectStore("optionsDatabase", { keyPath: "id" });
-  };
+  deleteUserById(tableName, columnId) {
+    this.database.db.run(`DELETE FROM ${tableName} WHERE id = ?`, [columnId]);
+  }
+
+  viewAllTable(tableName) {
+    const result = this.database.db.exec(`SELECT * FROM ${tableName};`);
+    return console.log(result.length > 0 ? result[0].values : []);
+  }
 }
 
-// Створення таблиці користувачів
-function createTables() {
-  db.run(`
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL,
-            email TEXT NOT NULL UNIQUE,
-            password TEXT NOT NULL,
-            role TEXT NOT NULL
-        );
-    `);
-  db.run(`
-        CREATE TABLE IF NOT EXISTS tests (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            title TEXT NOT NULL,
-            time_of_starting TIMESTAMP,
-            time_of_ending TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id)
-        );
-    `);
-  db.run(`
-        CREATE TABLE IF NOT EXISTS questions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            test_id INTEGER,
-            text TEXT NOT NULL,
-            response_type TEXT NOT NULL,
-            rating INTEGER,
-            FOREIGN KEY (test_id) REFERENCES tests(id)
-        );
-    `);
-  db.run(`
-        CREATE TABLE IF NOT EXISTS options (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            question_id INTEGER,
-            test_id INTEGER,
-            text TEXT NOT NULL,
-            is_correct TEXT NOT NULL,
-            FOREIGN KEY (question_id) REFERENCES questions(id),
-            FOREIGN KEY (test_id) REFERENCES tests(id)
-        );
-    `);
-  db.run(`
-        CREATE TABLE IF NOT EXISTS submissions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            test_id INTEGER,
-            student_id INTEGER,
-            teacher_name TEXT NOT NULL,
-            submission_date TIMESTAMP,
-            FOREIGN KEY (test_id) REFERENCES tests(id),
-            FOREIGN KEY (student_id) REFERENCES users(id),
-            FOREIGN KEY (teacher_name) REFERENCES users(username)
-        );
-    `);
-  db.run(`
-        CREATE TABLE IF NOT EXISTS responses (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            test_id INTEGER,
-            submission_id INTEGER,
-            question_id INTEGER,
-            FOREIGN KEY (test_id) REFERENCES tests(id),
-            FOREIGN KEY (submission_id) REFERENCES submissions(id),
-            FOREIGN KEY (question_id) REFERENCES questions(id)
-        );
-    `);
-  db.run(`
-        CREATE TABLE IF NOT EXISTS option_responses (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            test_id INTEGER,
-            submission_id INTEGER,
-            question_id INTEGER,
-            selected_option_id INTEGER,
-            score INTEGER,
-            FOREIGN KEY (test_id) REFERENCES tests(id),
-            FOREIGN KEY (submission_id) REFERENCES submissions(id),
-            FOREIGN KEY (question_id) REFERENCES questions(id)
-        );
-    `);
-}
-
-// Виведення даних через консоль
-function viewDatabase() {
-  const resultUsers = db.exec("SELECT * FROM users;");
-  const resultTests = db.exec("SELECT * FROM tests;");
-  const resultQuestions = db.exec("SELECT * FROM questions;");
-  const resultOptions = db.exec("SELECT * FROM options;");
-  const resultSubmissions = db.exec("SELECT * FROM submissions;");
-  const resultResponses = db.exec("SELECT * FROM responses;");
-  const resultOption_responses = db.exec("SELECT * FROM option_responses;");
-  if (resultUsers.length > 0 && resultUsers[0].values.length > 0) {
-    console.log("users Database");
-    resultUsers[0].values.forEach((row) => {
-      console.log(
-        `ID: ${row[0]}, Username: ${row[1]}, Email: ${row[2]}, Password: ${row[3]} Role: ${row[4]}`,
-      );
-    });
-    console.log("___________________________________________");
-  } else {
-    console.log("No users found in the database.");
-  }
-  if (resultTests.length > 0 && resultTests[0].values.length > 0) {
-    console.log("tests Database");
-    resultTests[0].values.forEach((row) => {
-      console.log(
-        `ID: ${row[0]}, user_id: ${row[1]}, title: ${row[2]}, StartTime: ${row[3]}, EndTime: ${row[4]}`,
-      );
-    });
-    console.log("___________________________________________");
-  } else {
-    console.log("No tests found in the database.");
+export class QuestionAdder {
+  constructor() {
+    this.checkBoxCount = 1;
   }
 
-  if (resultQuestions.length > 0 && resultQuestions[0].values.length > 0) {
-    console.log("questions Database");
-    resultQuestions[0].values.forEach((row) => {
-      console.log(
-        `ID: ${row[0]}, test_id: ${row[1]}, text: ${row[2]}, response_type: ${row[3]}, rating: ${row[4]}`,
-      );
-    });
-    console.log("___________________________________________");
-  } else {
-    console.log("No questions found in the database.");
-  }
-
-  if (resultOptions.length > 0 && resultOptions[0].values.length > 0) {
-    console.log("options Database");
-    resultOptions[0].values.forEach((row) => {
-      console.log(
-        `ID: ${row[0]}, question_id: ${row[1]} test_id: ${row[2]}, text: ${row[3]}, is_correct: ${row[4]}`,
-      );
-    });
-    console.log("___________________________________________");
-  } else {
-    console.log("No options found in the database.");
-  }
-
-  if (resultSubmissions.length > 0 && resultSubmissions[0].values.length > 0) {
-    console.log("Submission Database");
-    resultSubmissions[0].values.forEach((row) => {
-      console.log(
-        `ID: ${row[0]}, test_id: ${row[1]} student_id: ${row[2]}, teacher_name: ${row[3]}, submission_date: ${row[4]}}`,
-      );
-    });
-    console.log("___________________________________________");
-  } else {
-    console.log("No submission found in the database.");
-  }
-
-  if (resultResponses.length > 0 && resultResponses[0].values.length > 0) {
-    console.log("Responses Database");
-    resultResponses[0].values.forEach((row) => {
-      console.log(
-        `ID: ${row[0]}, test_id: ${row[1]} submission_id: ${row[2]}, question_id: ${row[3]}}`,
-      );
-    });
-    console.log("___________________________________________");
-  } else {
-    console.log("No responses found in the database.");
-  }
-
-  if (
-    resultOption_responses.length > 0 &&
-    resultOption_responses[0].values.length > 0
+  addQuestionForm(
+    submit_button,
+    questionCount,
+    checkForSubmit,
+    copyData = null
   ) {
-    console.log("Option_responses Database");
-    resultOption_responses[0].values.forEach((row) => {
-      console.log(
-        `ID: ${row[0]}, test_id: ${row[1]} submission_id: ${row[2]}, question_id: ${row[3]}, selected_option_id: ${row[4]}, score: ${row[5]}}`,
+    const container = document.getElementById("questionsContainer");
+    let checkBoxCount = 1;
+    const questionForm = document.createElement("div");
+    const questionLabel = document.createElement("label");
+    const questionInput = document.createElement("input");
+    const typeSelect = document.createElement("select");
+    const trueFalseOption = new Option("True/False", "trueFalse");
+    const multipleChoiceOption = new Option(
+      "Multiple Choice",
+      "multipleChoice"
+    );
+    const trueFalseOptions = document.createElement("div");
+    const multipleChoiceOptions = document.createElement("div");
+    const addOptionButton = document.createElement("button");
+    const scoreContainer = document.createElement("div");
+    const scoreLabel = document.createElement("label");
+    const scoreInput = document.createElement("input");
+    const buttonsForm = document.createElement("div");
+    submit_button.style.visibility = "visible";
+    questionCount++;
+    checkForSubmit++;
+    questionForm.classList.add("question-form");
+    questionForm.dataset.questionId = questionCount;
+    questionLabel.textContent = "Questions:";
+    questionForm.appendChild(questionLabel);
+    questionInput.type = "text";
+    questionInput.placeholder = "The content of the question";
+    questionInput.id = `question${questionCount}`;
+    questionInput.name = `question${questionCount}`;
+    questionInput.value = copyData ? copyData.question : "";
+    questionForm.appendChild(questionInput);
+    typeSelect.name = `questionType${questionCount}`;
+    typeSelect.onchange = (e) => this.toggleOptions(e.target, questionForm);
+    typeSelect.append(trueFalseOption, multipleChoiceOption);
+    if (copyData) {
+      typeSelect.value = copyData.type;
+    }
+    questionForm.appendChild(typeSelect);
+    trueFalseOptions.classList.add("true-false-options");
+    trueFalseOptions.innerHTML = `
+          <label><input id="id_true${questionCount}" checked type="radio" name="answer${questionCount}" value="true">True</label>
+          <label><input id="id_false${questionCount}" type="radio" name="answer${questionCount}" value="false">False</label>
+      `;
+    questionForm.appendChild(trueFalseOptions);
+
+    multipleChoiceOptions.classList.add(
+      "options-container",
+      "multiple-choice-options"
+    );
+    multipleChoiceOptions.id = `id-div-multiple-choice-options${questionCount}`;
+    multipleChoiceOptions.style.display = "none";
+    const id_checkBox_Fectch = questionCount;
+    if (copyData && copyData.options.length > 0) {
+      copyData.options.forEach((option) =>
+        this.addCheckboxOption(
+          id_checkBox_Fectch,
+          multipleChoiceOptions,
+          checkBoxCount++,
+          option
+        )
       );
-    });
-    console.log("___________________________________________");
-  } else {
-    console.log("No option_responses found in the database.");
+    } else {
+      this.addCheckboxOption(
+        id_checkBox_Fectch,
+        multipleChoiceOptions,
+        checkBoxCount++
+      );
+    }
+    addOptionButton.type = "button";
+    addOptionButton.textContent = "Add option";
+    addOptionButton.onclick = () => {
+      this.addCheckboxOption(
+        id_checkBox_Fectch,
+        multipleChoiceOptions,
+        checkBoxCount++
+      );
+    };
+    multipleChoiceOptions.appendChild(addOptionButton);
+    questionForm.appendChild(multipleChoiceOptions);
+    scoreContainer.classList.add("score-container");
+    scoreLabel.textContent = "Score";
+    scoreContainer.appendChild(scoreLabel);
+    scoreInput.type = "number";
+    scoreInput.id = `score${questionCount}`;
+    scoreInput.name = `score${questionCount}`;
+    scoreInput.style.width = `65px`;
+    scoreInput.value = copyData ? copyData.score : "";
+    scoreInput.min = 0;
+    scoreContainer.appendChild(scoreInput);
+    scoreInput.onkeydown = function (event) {
+      if (isNaN(event.key) && event.key !== "Backspace") {
+        event.preventDefault();
+      }
+    };
+    questionForm.appendChild(scoreContainer);
+    buttonsForm.classList.add("button-container");
+    const copyButton = document.createElement("button");
+    copyButton.type = "button";
+    copyButton.textContent = "Copy question";
+    copyButton.id = `copyQuestion${questionCount}`;
+    copyButton.classList.add("copyQuestionClass");
+    // const copyCount = questionCount;
+    // copyButton.onclick = () => {
+    //   const questionData = {
+    //     question: questionInput.value,
+    //     type: typeSelect.value,
+    //     score: scoreInput.value,
+    //     options: [],
+    //   };
+    //   if (typeSelect.value === "multipleChoice") {
+    //     const getMultipleElement = document.getElementById(
+    //       `id-div-multiple-choice-options${copyCount}`
+    //     );
+    //     const copyCheckBoxCount =
+    //       getMultipleElement.querySelectorAll("[type='checkbox']");
+    //     for (let i = 1; i <= copyCheckBoxCount.length; i++) {
+    //       const optionInput = document.getElementById(
+    //         `multipleChoiceText${copyCount}${i}[]`
+    //       );
+    //       questionData.options.push(optionInput.value);
+    //       console.log(questionData, copyCount, copyCheckBoxCount.length);
+    //     }
+    //   }
+    //   this.addQuestionForm(
+    //     submit_button,
+    //     questionCount,
+    //     checkForSubmit,
+    //     questionData
+    //   );
+    // };
+    buttonsForm.appendChild(copyButton);
+    questionForm.appendChild(buttonsForm);
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.textContent = "Delete question";
+    deleteButton.onclick = () => {
+      checkForSubmit--;
+      questionCount--;
+      questionForm.remove();
+      if (checkForSubmit === 0) {
+        submit_button.style.visibility = "hidden";
+      }
+    };
+    buttonsForm.appendChild(deleteButton);
+    questionForm.appendChild(buttonsForm);
+    container.appendChild(questionForm);
+    if (copyData && copyData.type === "multipleChoice") {
+      typeSelect.dispatchEvent(new Event("change"));
+    }
+    console.log("class :", questionCount)
+    return questionCount;
   }
-}
 
-// Функція для видалення користувача за ID
-function deleteUserById(userId) {
-  const stmt = db.prepare("DELETE FROM users WHERE id = ?;");
-  stmt.run([userId]);
-  stmt.free();
-  console.log(`User with ID ${userId} has been deleted.`);
-}
-
-function dropTable() {
-  // Видаляємо таблицю users
-  db.run("DROP TABLE IF EXISTS users;");
-  console.log("Table 'users' has been deleted.");
-}
-
-function getUserData() {
-  return {
-    id: localStorage.getItem("userId"),
-    name: localStorage.getItem("userName"),
-    email: localStorage.getItem("userEmail"),
-    password: localStorage.getItem("userPassword"),
-    role: localStorage.getItem("userRole"),
-  };
-}
-
-function clearUserData() {
-  localStorage.clear();
-  window.location.href = "index.html";
-}
-
-function clearTestData() {
-  localStorage.removeItem("teacher_name");
-  localStorage.removeItem("test_name");
-  localStorage.removeItem("score");
-  localStorage.removeItem("date");
-}
-
-// Поверхневе копіювання
-function shallowEqual(obj1, obj2) {
-  if (Object.keys(obj1).length !== Object.keys(obj2).length) {
-    return false;
-  }
-  for (let key in obj1) {
-    if (obj1[key] !== obj2[key]) {
-      return false;
+  toggleOptions(selectElement, questionForm) {
+    const trueFalseOptions = questionForm.querySelector(".true-false-options");
+    const multipleChoiceOptions = questionForm.querySelector(
+      ".multiple-choice-options"
+    );
+    if (selectElement.value === "trueFalse") {
+      trueFalseOptions.style.display = "flex";
+      multipleChoiceOptions.style.display = "none";
+    } else {
+      trueFalseOptions.style.display = "none";
+      multipleChoiceOptions.style.display = "block";
     }
   }
-  return true;
-}
 
-function viewTestsOfUser(id) {
-  const queryUsers = `SELECT * FROM users WHERE id = ${id}`;
-  try {
-    const resultUsers = db.exec(queryUsers);
-    if (resultUsers.length > 0) {
-      resultUsers[0].values.forEach((row) => {
-        console.log(
-          `ID: ${row[0]}, Username: ${row[1]}, Email: ${row[2]}, Password: ${row[3]} Role: ${row[4]}`,
+  addCheckboxOption(
+    id_checkBox_Fectch,
+    container,
+    secondCounter,
+    optionText = ""
+  ) {
+    const optionDiv = document.createElement("div");
+    optionDiv.classList.add("multiple-choice-option");
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.id = `multipleChoice${id_checkBox_Fectch}${secondCounter}[]`;
+
+    const optionInput = document.createElement("input");
+    optionInput.type = "text";
+    optionInput.id = `multipleChoiceText${id_checkBox_Fectch}${secondCounter}[]`;
+    optionInput.placeholder = "Answer option";
+    optionInput.value = optionText; // Якщо є текст варіанту, вставляємо його
+
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.id = `delete-button${id_checkBox_Fectch}`;
+    deleteButton.textContent = "❌"; // Хрестик для видалення
+    deleteButton.onclick = () => {
+      const formCheckBoxs = document.getElementById(
+        `id-div-multiple-choice-options${id_checkBox_Fectch}`
+      );
+      const amountOfCheckBoxs =
+      formCheckBoxs.querySelectorAll('[type="checkbox"]');
+      const stringID = String(optionInput.id);
+      const thirdFromEnd = stringID[stringID.length - 3];
+      const idForChange = Number(thirdFromEnd);
+      let j = idForChange;
+      console.log(idForChange, amountOfCheckBoxs.length);
+      for (let i = idForChange; i < amountOfCheckBoxs.length; i++) {
+        j++;
+        console.log(id_checkBox_Fectch, idForChange);
+        const amountOfCheckBoxsText = document.getElementById(
+          `multipleChoiceText${id_checkBox_Fectch}${j}[]`
         );
-      });
-    } else {
-      console.log("Запис з таким id не знайдено.");
-    }
-  } catch (error) {
-    console.error("Помилка виконання запиту:", error);
-  }
-
-  const queryTests = `SELECT * FROM tests WHERE user_id = ${id}`;
-  try {
-    const resultTests = db.exec(queryTests);
-    if (resultTests.length > 0) {
-      resultTests[0].values.forEach((row) => {
-        console.log(
-          `ID: ${row[0]}, user_id: ${row[1]}, title: ${row[2]}, StartTime: ${row[3]}, EndTime: ${row[4]}`,
+        amountOfCheckBoxsText.id = `multipleChoiceText${id_checkBox_Fectch}${i}[]`;
+        const amountOfCheckBoxs = document.getElementById(
+          `multipleChoice${id_checkBox_Fectch}${j}[]`
         );
-      });
-    } else {
-      console.log("Запис з таким id не знайдено.");
+        amountOfCheckBoxs.id = `multipleChoice${id_checkBox_Fectch}${i}[]`;
+      }
+      this.checkBoxCount = this.checkBoxCount - 1;
+      optionDiv.remove();
+    };
+    if (secondCounter === 1) {
+      deleteButton.style.visibility = "hidden";
     }
-  } catch (error) {
-    console.error("Помилка виконання запиту:", error);
+
+    optionDiv.appendChild(checkbox);
+    optionDiv.appendChild(optionInput);
+    optionDiv.appendChild(deleteButton); // Додаємо кнопку видалення
+    switch (true) {
+      case !optionText:
+        container.insertBefore(optionDiv, container.lastElementChild);
+        break;
+      case optionText !== "":
+        container.appendChild(optionDiv, container.lastElementChild);
+        break;
+    }
   }
 }
-
-function viewContentOfTest(id) {
-  const queryQuestion = `SELECT * FROM questions WHERE test_id = ${id}`;
-  try {
-    const resultQuestions = db.exec(queryQuestion);
-    if (resultQuestions.length > 0 && resultQuestions[0].values.length > 0) {
-      console.log("questions Database");
-      resultQuestions[0].values.forEach((row) => {
-        console.log(
-          `ID: ${row[0]}, test_id: ${row[1]}, text: ${row[2]}, response_type: ${row[3]}, rating: ${row[4]}`,
-        );
-      });
-      console.log("___________________________________________");
-    } else {
-      console.log("No questions found in the database.");
-    }
-  } catch (error) {
-    console.error("Помилка виконання запиту:", error);
-  }
-
-  const queryOption = `SELECT * FROM options WHERE test_id = ${id}`;
-  try {
-    const resultOptions = db.exec(queryOption);
-    if (resultOptions.length > 0 && resultOptions[0].values.length > 0) {
-      console.log("options Database");
-      resultOptions[0].values.forEach((row) => {
-        console.log(
-          `ID: ${row[0]}, question_id: ${row[1]} test_id: ${row[2]}, text: ${row[3]}, is_correct: ${row[4]}`,
-        );
-      });
-      console.log("___________________________________________");
-    } else {
-      console.log("No options found in the database.");
-    }
-  } catch (error) {
-    console.error("Помилка виконання запиту:", error);
-  }
-}
-
-function viewSubmissionsOfUser(id) {
-  const queryUsers = `SELECT * FROM users WHERE id = ${id}`;
-  try {
-    const resultUsers = db.exec(queryUsers);
-    if (resultUsers.length > 0) {
-      resultUsers[0].values.forEach((row) => {
-        console.log(
-          `ID: ${row[0]}, Username: ${row[1]}, Email: ${row[2]}, Password: ${row[3]} Role: ${row[4]}`,
-        );
-      });
-    } else {
-      console.log("Запис з таким id не знайдено.");
-    }
-  } catch (error) {
-    console.error("Помилка виконання запиту:", error);
-  }
-
-  const queryTests = `SELECT * FROM submissions WHERE student_id = ${id}`;
-  try {
-    const resultTests = db.exec(queryTests);
-    if (resultTests.length > 0) {
-      resultTests[0].values.forEach((row) => {
-        console.log(
-          `ID: ${row[0]}, test_id: ${row[1]}, student_id: ${row[2]}, submission_date: ${row[3]}`,
-        );
-      });
-    } else {
-      console.log("Запис з таким id не знайдено.");
-    }
-  } catch (error) {
-    console.error("Помилка виконання запиту:", error);
-  }
-}
-
-function viewContentOfSubmission(id) {
-  const queryQuestion = `SELECT * FROM responses WHERE submission_id = ${id}`;
-  try {
-    const resultQuestions = db.exec(queryQuestion);
-    if (resultQuestions.length > 0 && resultQuestions[0].values.length > 0) {
-      console.log("questions Database");
-      resultQuestions[0].values.forEach((row) => {
-        console.log(
-          `ID: ${row[0]}, test_id: ${row[1]}, submission_id: ${row[2]}, question_id: ${row[3]}`,
-        );
-      });
-      console.log("___________________________________________");
-    } else {
-      console.log("No responses found in the database.");
-    }
-  } catch (error) {
-    console.error("Помилка виконання запиту:", error);
-  }
-
-  const queryOption = `SELECT * FROM option_responses WHERE submission_id = ${id}`;
-  try {
-    const resultOptions = db.exec(queryOption);
-    if (resultOptions.length > 0 && resultOptions[0].values.length > 0) {
-      console.log("options Database");
-      resultOptions[0].values.forEach((row) => {
-        console.log(
-          `ID: ${row[0]}, test_id: ${row[1]} submission_id: ${row[2]}, question_id: ${row[3]}, selected_option_id: ${row[4]}, score: ${row[5]}`,
-        );
-      });
-      console.log("___________________________________________");
-    } else {
-      console.log("No option_responses found in the database.");
-    }
-  } catch (error) {
-    console.error("Помилка виконання запиту:", error);
-  }
-}
-
-function sortForms(sortType) {
-  const container = document.querySelector(".questions-container");
-  const forms = Array.from(container.getElementsByClassName("results-form"));
-
-  sortOrder[sortType] = !sortOrder[sortType];
-
-  forms.sort((a, b) => {
-    const valueA = a.dataset[sortType] || "";
-    const valueB = b.dataset[sortType] || "";
-    if (sortType === "time") {
-      return sortOrder[sortType]
-        ? new Date(valueA) - new Date(valueB)
-        : new Date(valueB) - new Date(valueA);
-    } else {
-      return sortOrder[sortType]
-        ? valueA.localeCompare(valueB)
-        : valueB.localeCompare(valueA);
-    }
-  });
-  forms.forEach((form) => container.appendChild(form));
-}
-
-function goBack() {
-  window.history.back();
-}
-

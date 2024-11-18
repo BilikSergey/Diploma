@@ -15,7 +15,7 @@
           class="styled-input"
           placeholder="Test name"
         />
-        <button class="add-question-btn" onclick="addQuestionForm()">
+        <button id="id-add-question" class="add-question-btn">
           Add question
         </button>
       </div>
@@ -50,15 +50,8 @@
       <div class="questions-container" id="questionsContainer"></div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.2/sql-wasm.js"></script>
-    <script src="/js/database.js"></script>
-    <script src="/js/create_test.js"></script>
+    <script type="module" src="/js/create_test.js"></script>
     <script>
-      const currentObj = getUserData().role;
-      document.addEventListener("DOMContentLoaded", function () {
-        if (currentObj !== "teacher") {
-          window.location.href = "index.html";
-        }
-      });
     </script>
   </body>
 </html>

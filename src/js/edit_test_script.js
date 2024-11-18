@@ -54,7 +54,7 @@ function isCheckBoxsEmpty(
   return (is_checkBox_checked = "true/false");
 }
 
-function sendTestIntoDB() {
+export function sendTestIntoDB() {
   const testName = document.getElementById("id_input_test_name");
   const stmtTitleTest = db.prepare(
     "SELECT 1 FROM tests WHERE title = ? AND user_id = ?",

@@ -1,10 +1,26 @@
-let db;
-let timeoutId;
+import { DatabaseManager, TablesManager } from "./database.js";
 const authContainer = document.getElementById("auth-container");
-
 showAuthForm();
-// eslint-disable-next-line no-undef
-initDatabase();
+let dbManager;
+let tablesManager;
+let timeoutId;
+
+(async () => {
+  dbManager = new DatabaseManager();
+  await dbManager.init();
+})();
+
+async function addUser(username, email, password, role) {
+  const tableName = "users";
+  const columnsString = "username, email, password, role";
+  const questionMarkString = "?, ?, ?, ?";
+  const valuesArray = [username, email, password, role];
+  tablesManager = new TablesManager(dbManager);
+  tablesManager.addIntoTable(tableName, columnsString, questionMarkString, valuesArray);
+  dbManager.saveDatabase();
+  tablesManager.viewAllTable("users");
+  console.log("User added!");
+}
 
 async function hashPassword(password) {
   const textEncoder = new TextEncoder();
@@ -12,7 +28,7 @@ async function hashPassword(password) {
 
   const hashBuffer = await window.crypto.subtle.digest(
     "SHA-256",
-    encodedPassword,
+    encodedPassword
   );
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   const hashHex = hashArray
@@ -21,25 +37,8 @@ async function hashPassword(password) {
   return hashHex;
 }
 
-// Функція для додавання користувача
-async function addUser(username, email, password, role) {
-  try {
-    const hashedPassword = await hashPassword(password);
-    console.log(hashedPassword);
-    db.run(
-      "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
-      [username, email, hashedPassword, role],
-    );
-    // eslint-disable-next-line no-undef
-    saveDatabase();
-    console.log("User succesfully added");
-  } catch {
-    console.log("Error");
-  }
-}
-
 function findUserByEmail(email) {
-  const stmt = db.prepare("SELECT * FROM users WHERE email = ?");
+  const stmt = dbManager.db.prepare("SELECT * FROM users WHERE email = ?");
   const result = stmt.get([email]);
   stmt.free();
   return result;
@@ -66,34 +65,36 @@ function showAuthForm() {
       event.preventDefault();
       showRegisterForm();
     });
-  document.getElementById("id_login_button").addEventListener("click", async () => {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    const hashedPassword = await hashPassword(password);
-    const user = findUserByEmail(email);
-    switch (true) {
-      case email === "":
-        showErrorMessage("Field 'Email' cannot be empty");
-        break;
-      case user.length === [].length:
-        showErrorMessage("User with this email didn't register");
-        break;
-      case password === "":
-        showErrorMessage("Field 'password' cannot be empty");
-        break;
-      case user && hashedPassword !== user[3]:
-        showErrorMessage("Password is not correct");
-        break;
-      case user[4] === "student" && hashedPassword === user[3]:
-        saveUserData(user);
-        window.location.href = "cabinet_student.html";
-        break;
-      case user[4] === "teacher" && hashedPassword === user[3]:
-        saveUserData(user);
-        window.location.href = "cabinet_teacher.html";
-        break;
-    }
-  });
+  document
+    .getElementById("id_login_button")
+    .addEventListener("click", async () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const hashedPassword = await hashPassword(password);
+      const user = findUserByEmail(email);
+      switch (true) {
+        case email === "":
+          showErrorMessage("Field 'Email' cannot be empty");
+          break;
+        case user.length === [].length:
+          showErrorMessage("User with this email didn't register");
+          break;
+        case password === "":
+          showErrorMessage("Field 'password' cannot be empty");
+          break;
+        case user && hashedPassword !== user[3]:
+          showErrorMessage("Password is not correct");
+          break;
+        case user[4] === "student" && hashedPassword === user[3]:
+          saveUserData(user);
+          window.location.href = "cabinet_student.html";
+          break;
+        case user[4] === "teacher" && hashedPassword === user[3]:
+          saveUserData(user);
+          window.location.href = "cabinet_teacher.html";
+          break;
+      }
+    });
 }
 
 // Функція для відображення форми реєстрації
@@ -122,16 +123,21 @@ function showRegisterForm() {
     showAuthForm();
   });
 
-  document.getElementById("submit").addEventListener("click", () => {
+  document.getElementById("submit").addEventListener("click", async () => {
     const username = document.getElementById("new-name").value;
     const email = document.getElementById("new-email").value;
     const password = document.getElementById("new-password").value;
     const role = document.getElementById("role").value;
+    const hashedPassword = await hashPassword(password);
 
-    const stmtUsername = db.prepare("SELECT 1 FROM users WHERE username = ?");
+    const stmtUsername = dbManager.db.prepare(
+      "SELECT 1 FROM users WHERE username = ?"
+    );
     stmtUsername.bind([username]);
     const usernameExists = stmtUsername.step();
-    const stmtEmail = db.prepare("SELECT 1 FROM users WHERE email = ?");
+    const stmtEmail = dbManager.db.prepare(
+      "SELECT 1 FROM users WHERE email = ?"
+    );
     stmtEmail.bind([email]);
     const emailExists = stmtEmail.step();
 
@@ -150,7 +156,7 @@ function showRegisterForm() {
         break;
       case !checkedUsername:
         showErrorMessage(
-          "The username must contain between 3 and 20 characters and start with a letter without spaces",
+          "The username must contain between 3 and 20 characters and start with a letter without spaces"
         );
         break;
       case usernameExists:
@@ -170,12 +176,11 @@ function showRegisterForm() {
         break;
       case !checkedPass:
         showErrorMessage(
-          "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character",
+          "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character"
         );
         break;
       case true:
-        addUser(username, email, password, role);
-        event.preventDefault();
+        addUser(username, email, hashedPassword, role);
         showAuthForm();
         break;
     }
