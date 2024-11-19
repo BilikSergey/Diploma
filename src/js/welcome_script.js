@@ -10,13 +10,9 @@ let timeoutId;
   await dbManager.init();
 })();
 
-async function addUser(username, email, password, role) {
-  const tableName = "users";
-  const columnsString = "username, email, password, role";
-  const questionMarkString = "?, ?, ?, ?";
-  const valuesArray = [username, email, password, role];
+async function addUser(valuesArray) {
   tablesManager = new TablesManager(dbManager);
-  tablesManager.addIntoTable(tableName, columnsString, questionMarkString, valuesArray);
+  tablesManager.addIntoTable("users", valuesArray);
   dbManager.saveDatabase();
   tablesManager.viewAllTable("users");
   console.log("User added!");
@@ -149,7 +145,7 @@ function showRegisterForm() {
     const passwordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     const checkedPass = passwordRegex.test(password);
-
+    const valuesArray = [username, email, hashedPassword, role];
     switch (true) {
       case username === "":
         showErrorMessage("Field 'username' cannot be empty");
@@ -180,7 +176,7 @@ function showRegisterForm() {
         );
         break;
       case true:
-        addUser(username, email, hashedPassword, role);
+        addUser(valuesArray);
         showAuthForm();
         break;
     }

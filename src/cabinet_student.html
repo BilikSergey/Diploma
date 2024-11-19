@@ -25,25 +25,17 @@
         <button class="dashboard-btn" onclick="location.href='settings.html'">
           Settings
         </button>
-        <button id="id_exit_button" class="dashboard-btn" onclick="">
+        <button id="id_exit_button" class="dashboard-btn" onclick="signOut()">
           Sign out
         </button>
       </div>
     </div>
     <script src="/js/database.js"></script>
     <script>
-      const currentObj = getUserData().role;
-      document.addEventListener("DOMContentLoaded", function () {
-        if (currentObj !== "student") {
-          window.location.href = "index.html";
-        }
-      });
-      document
-        .getElementById("id_exit_button")
-        .addEventListener("click", () => {
-          clearUserData();
-          clearTestData();
-        });
+      function signOut() {
+        localStorage.clear();
+        window.location.href = "index.html";
+      }
     </script>
   </body>
 </html>

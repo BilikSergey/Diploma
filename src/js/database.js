@@ -197,9 +197,45 @@ export class DatabaseManager {
 export class TablesManager {
   constructor(database) {
     this.database = database;
+
+    this.tableColumnsStringUsers = "username, email, password, role";
+    this.tableColumnsStringTests =
+      "user_id, title, time_of_starting, time_of_ending";
+    this.tableColumnsStringQuestions = "test_id, text, response_type, rating";
+    this.tableColumnsStringOptions = "question_id, test_id, text, is_correct";
+
+    this.tableQuestionMarkStringUsers = "?, ?, ?, ?";
+    this.tableQuestionMarkStringTests = "?, ?, ?, ?";
+    this.tableQuestionMarkStringQuestions = "?, ?, ?, ?";
+    this.tableQuestionMarkStringOptions = "?, ?, ?, ?";
   }
 
-  addIntoTable(tableName, columnsString, questionMarkString, valuesArray) {
+  addIntoTable(checkingTableName, valuesArray) {
+    let tableName;
+    let columnsString;
+    let questionMarkString;
+    switch (true) {
+      case checkingTableName === "users":
+        tableName = "users";
+        columnsString = this.tableColumnsStringUsers;
+        questionMarkString = this.tableQuestionMarkStringUsers;
+        break;
+      case checkingTableName === "tests":
+        tableName = "tests";
+        columnsString = this.tableColumnsStringTests;
+        questionMarkString = this.tableQuestionMarkStringTests;
+        break;
+      case checkingTableName === "questions":
+        tableName = "questions";
+        columnsString = this.tableColumnsStringQuestions;
+        questionMarkString = this.tableQuestionMarkStringQuestions;
+        break;
+      case checkingTableName === "options":
+        tableName = "options";
+        columnsString = this.tableColumnsStringOptions;
+        questionMarkString = this.tableQuestionMarkStringOptions;
+        break;
+    }
     this.database.db.run(
       `INSERT INTO ${tableName} (${columnsString}) VALUES (${questionMarkString})`,
       valuesArray
@@ -228,7 +264,7 @@ export class QuestionAdder {
     copyData = null
   ) {
     const container = document.getElementById("questionsContainer");
-    let checkBoxCount = 1;
+    this.checkBoxCount = 1;
     const questionForm = document.createElement("div");
     const questionLabel = document.createElement("label");
     const questionInput = document.createElement("input");
@@ -284,7 +320,7 @@ export class QuestionAdder {
         this.addCheckboxOption(
           id_checkBox_Fectch,
           multipleChoiceOptions,
-          checkBoxCount++,
+          this.checkBoxCount++,
           option
         )
       );
@@ -292,7 +328,7 @@ export class QuestionAdder {
       this.addCheckboxOption(
         id_checkBox_Fectch,
         multipleChoiceOptions,
-        checkBoxCount++
+        this.checkBoxCount++
       );
     }
     addOptionButton.type = "button";
@@ -301,7 +337,7 @@ export class QuestionAdder {
       this.addCheckboxOption(
         id_checkBox_Fectch,
         multipleChoiceOptions,
-        checkBoxCount++
+        this.checkBoxCount++
       );
     };
     multipleChoiceOptions.appendChild(addOptionButton);
@@ -328,35 +364,7 @@ export class QuestionAdder {
     copyButton.textContent = "Copy question";
     copyButton.id = `copyQuestion${questionCount}`;
     copyButton.classList.add("copyQuestionClass");
-    // const copyCount = questionCount;
-    // copyButton.onclick = () => {
-    //   const questionData = {
-    //     question: questionInput.value,
-    //     type: typeSelect.value,
-    //     score: scoreInput.value,
-    //     options: [],
-    //   };
-    //   if (typeSelect.value === "multipleChoice") {
-    //     const getMultipleElement = document.getElementById(
-    //       `id-div-multiple-choice-options${copyCount}`
-    //     );
-    //     const copyCheckBoxCount =
-    //       getMultipleElement.querySelectorAll("[type='checkbox']");
-    //     for (let i = 1; i <= copyCheckBoxCount.length; i++) {
-    //       const optionInput = document.getElementById(
-    //         `multipleChoiceText${copyCount}${i}[]`
-    //       );
-    //       questionData.options.push(optionInput.value);
-    //       console.log(questionData, copyCount, copyCheckBoxCount.length);
-    //     }
-    //   }
-    //   this.addQuestionForm(
-    //     submit_button,
-    //     questionCount,
-    //     checkForSubmit,
-    //     questionData
-    //   );
-    // };
+
     buttonsForm.appendChild(copyButton);
     questionForm.appendChild(buttonsForm);
     const deleteButton = document.createElement("button");
@@ -376,7 +384,7 @@ export class QuestionAdder {
     if (copyData && copyData.type === "multipleChoice") {
       typeSelect.dispatchEvent(new Event("change"));
     }
-    console.log("class :", questionCount)
+    console.log("class :", questionCount);
     return questionCount;
   }
 
@@ -402,6 +410,7 @@ export class QuestionAdder {
   ) {
     const optionDiv = document.createElement("div");
     optionDiv.classList.add("multiple-choice-option");
+    optionDiv.id = `multiple-choice-option-id${id_checkBox_Fectch}${secondCounter}`;
 
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
@@ -415,34 +424,10 @@ export class QuestionAdder {
 
     const deleteButton = document.createElement("button");
     deleteButton.type = "button";
-    deleteButton.id = `delete-button${id_checkBox_Fectch}`;
+    deleteButton.classList.add("delete-button-class");
+    deleteButton.id = `delete-button${id_checkBox_Fectch}${secondCounter}`;
     deleteButton.textContent = "❌"; // Хрестик для видалення
-    deleteButton.onclick = () => {
-      const formCheckBoxs = document.getElementById(
-        `id-div-multiple-choice-options${id_checkBox_Fectch}`
-      );
-      const amountOfCheckBoxs =
-      formCheckBoxs.querySelectorAll('[type="checkbox"]');
-      const stringID = String(optionInput.id);
-      const thirdFromEnd = stringID[stringID.length - 3];
-      const idForChange = Number(thirdFromEnd);
-      let j = idForChange;
-      console.log(idForChange, amountOfCheckBoxs.length);
-      for (let i = idForChange; i < amountOfCheckBoxs.length; i++) {
-        j++;
-        console.log(id_checkBox_Fectch, idForChange);
-        const amountOfCheckBoxsText = document.getElementById(
-          `multipleChoiceText${id_checkBox_Fectch}${j}[]`
-        );
-        amountOfCheckBoxsText.id = `multipleChoiceText${id_checkBox_Fectch}${i}[]`;
-        const amountOfCheckBoxs = document.getElementById(
-          `multipleChoice${id_checkBox_Fectch}${j}[]`
-        );
-        amountOfCheckBoxs.id = `multipleChoice${id_checkBox_Fectch}${i}[]`;
-      }
-      this.checkBoxCount = this.checkBoxCount - 1;
-      optionDiv.remove();
-    };
+
     if (secondCounter === 1) {
       deleteButton.style.visibility = "hidden";
     }
@@ -457,6 +442,298 @@ export class QuestionAdder {
       case optionText !== "":
         container.appendChild(optionDiv, container.lastElementChild);
         break;
+    }
+  }
+
+  deleteCheckBoxOption(event) {
+    const buttonFullId = event.target.id;
+    const fullStringID = buttonFullId.slice(-2);
+    const questionID = buttonFullId[buttonFullId.length - 2];
+    const optionID = buttonFullId[buttonFullId.length - 1];
+    let buttonNumId = Number(fullStringID);
+    const questionNumId = Number(questionID);
+    const optionNumId = Number(optionID);
+    const formCheckBoxs = document.getElementById(
+      `id-div-multiple-choice-options${questionNumId}`
+    );
+    const amountOfCheckBoxs =
+      formCheckBoxs.querySelectorAll('[type="checkbox"]');
+    const optionDiv = document.getElementById(
+      `multiple-choice-option-id${buttonNumId}`
+    );
+    let newID = buttonNumId;
+    for (let i = optionNumId; i < amountOfCheckBoxs.length; i++) {
+      buttonNumId++;
+      console.log(buttonNumId, newID, optionNumId, i);
+      const amountOfCheckBoxsText = document.getElementById(
+        `multipleChoiceText${buttonNumId}[]`
+      );
+      amountOfCheckBoxsText.id = `multipleChoiceText${newID}[]`;
+      const amountOfCheckBoxs = document.getElementById(
+        `multipleChoice${buttonNumId}[]`
+      );
+      amountOfCheckBoxs.id = `multipleChoice${newID}[]`;
+      const amountOfDelete = document.getElementById(
+        `delete-button${buttonNumId}`
+      );
+      amountOfDelete.id = `delete-button${newID}`;
+      const amountOfOptionDiv = document.getElementById(
+        `multiple-choice-option-id${buttonNumId}`
+      );
+      amountOfOptionDiv.id = `multiple-choice-option-id${newID}`;
+      newID++;
+    }
+    optionDiv.remove();
+    const updateAmountOfCheckBoxs =
+      formCheckBoxs.querySelectorAll('[type="checkbox"]');
+    this.checkBoxCount = updateAmountOfCheckBoxs.length + 1;
+  }
+
+  copyQuestion(submit_button, questionCount, checkForSubmit, event) {
+    const buttonFullId = event.target.id;
+    const buttonNumId = buttonFullId[buttonFullId.length - 1]; // Останній символ ID кнопки
+
+    // Отримуємо елементи з відповідними ID
+    const questionTitle = document.getElementById(`question${buttonNumId}`);
+    const typeSelect = document.querySelector(
+      `[name="questionType${buttonNumId}"]`
+    );
+    const scoreInput = document.getElementById(`score${buttonNumId}`);
+    console.log(questionTitle, typeSelect, scoreInput);
+
+    // Перевіряємо чи елементи існують
+    if (!questionTitle || !typeSelect || !scoreInput) {
+      console.error("Не вдалося знайти потрібні елементи!");
+      return;
+    }
+
+    const questionData = {
+      question: questionTitle.value,
+      type: typeSelect.value,
+      score: scoreInput.value,
+      options: [],
+    };
+
+    // const trueFalseOption  = document.querySelector("[name='true-false-options']");
+    if (typeSelect.value === "multipleChoice") {
+      const getMultipleElement = document.getElementById(
+        `id-div-multiple-choice-options${buttonNumId}`
+      );
+
+      if (getMultipleElement) {
+        const checkBoxList =
+          getMultipleElement.querySelectorAll("[type='checkbox']");
+        for (let j = 1; j <= checkBoxList.length; j++) {
+          const optionInput = document.getElementById(
+            `multipleChoiceText${buttonNumId}${j}[]`
+          );
+          questionData.options.push(optionInput.value);
+        }
+      }
+    }
+    const newCounter = this.addQuestionForm(
+      submit_button,
+      questionCount,
+      checkForSubmit,
+      questionData
+    );
+    return newCounter;
+  }
+}
+
+export class IntoDBTestAdderChecker {
+  constructor(database, tablesManager) {
+    this.database = database;
+    this.tablesManager = tablesManager;
+  }
+
+  sendTestIntoDB(questionCount) {
+    const testName = document.getElementById("id_input_test_name");
+    const startTime = document.getElementById("test-datetime-start");
+    const endTime = document.getElementById("test-datetime-end");
+    const stmtTitleTest = this.database.db.prepare(
+      "SELECT 1 FROM tests WHERE title = ? AND user_id = ?"
+    );
+    stmtTitleTest.bind([testName.value, this.database.getUserData().id]); // Передаємо параметри без вкладеного масиву
+    const TitleTestExists = stmtTitleTest.step();
+
+    if (TitleTestExists) {
+      alert("You have already created a test with this name");
+      return true;
+    }
+    for (let i = 1; i <= questionCount; i++) {
+      let is_checkBox_checked = false;
+      const questionName = document.getElementById(`question${i}`);
+      if (questionName === null) {
+        continue;
+      }
+      const scoreName = document.getElementById(`score${i}`);
+      const form_checkBox = document.querySelector(
+        `#id-div-multiple-choice-options${i}`
+      );
+      const checkboxes = form_checkBox.querySelectorAll(
+        'input[type="checkbox"]'
+      );
+      const form_of_CheckBox = document.getElementById(
+        `id-div-multiple-choice-options${i}`
+      );
+      is_checkBox_checked = this.isCheckBoxsEmpty(
+        form_of_CheckBox,
+        checkboxes,
+        is_checkBox_checked,
+        i
+      );
+      switch (true) {
+        case !testName.value:
+          this.highlightElement(testName);
+          return true;
+        case !questionName.value:
+          this.highlightElement(questionName);
+          questionName.scrollIntoView({ behavior: "smooth" });
+          return true;
+        case !scoreName.value:
+          this.highlightElement(scoreName);
+          scoreName.scrollIntoView({ behavior: "smooth" });
+          return true;
+        case is_checkBox_checked === false:
+          return true;
+      }
+    }
+    const userData = this.database.getUserData();
+    const valuesArray = [
+      userData.id,
+      testName.value,
+      startTime.value,
+      endTime.value,
+    ];
+    this.tablesManager.addIntoTable("tests", valuesArray);
+    this.addTest(questionCount);
+    this.database.saveDatabase();
+    // setTimeout(() => {
+    //   window.location.href = "cabinet_teacher.html";
+    // }, 500);
+  }
+
+  isCheckBoxsEmpty(form_of_CheckBox, checkboxes, is_checkBox_checked, i) {
+    if (form_of_CheckBox.style.display === "block") {
+      for (let j = 1; j <= checkboxes.length; j++) {
+        const response_text = document.getElementById(
+          `multipleChoiceText${i}${j}[]`
+        );
+        const response_checkBox = document.getElementById(
+          `multipleChoice${i}${j}[]`
+        );
+        if (!response_text.value) {
+          this.highlightElement(response_text);
+          response_text.scrollIntoView({ behavior: "smooth" });
+          return (is_checkBox_checked = false);
+        }
+        if (response_checkBox.checked) {
+          is_checkBox_checked = true;
+        }
+      }
+      if (!is_checkBox_checked) {
+        this.highlightElement(form_of_CheckBox);
+        form_of_CheckBox.scrollIntoView({ behavior: "smooth" });
+        return (is_checkBox_checked = false);
+      }
+    }
+    return (is_checkBox_checked = "true/false");
+  }
+
+  highlightElement(element) {
+    element.classList.add("highlight-animated");
+
+    setTimeout(() => {
+      element.classList.remove("highlight-animated");
+    }, 2000);
+  }
+
+  addTest(questionCount) {
+    for (let i = 1; i <= questionCount; i++) {
+      const test_id = this.getLastRecord("tests")[0];
+      const text_question = document.getElementById(`question${i}`);
+      if (text_question === null) {
+        continue;
+      }
+      let response_type;
+      const rating = document.getElementById(`score${i}`).value;
+      const selectorOptions = document.getElementById(
+        `id-div-multiple-choice-options${i}`
+      );
+      response_type =
+        selectorOptions.style.display === "block" ? "multiple" : "true/false";
+      const valuesArray = [test_id, text_question.value, response_type, rating];
+      this.tablesManager.addIntoTable("questions", valuesArray);
+
+      const id_test_question = this.getLastRecord("questions")[0];
+      const form_checkBox = document.querySelector(
+        `#id-div-multiple-choice-options${i}`
+      );
+      const checkboxes = form_checkBox.querySelectorAll(
+        'input[type="checkbox"]'
+      );
+      const form_of_CheckBox = document.getElementById(
+        `id-div-multiple-choice-options${i}`
+      );
+      if (form_of_CheckBox.style.display === "block") {
+        for (let j = 1; j <= checkboxes.length; j++) {
+          const response_text = document.getElementById(
+            `multipleChoiceText${i}${j}[]`
+          ).value;
+          const response_checkBox = document.getElementById(
+            `multipleChoice${i}${j}[]`
+          );
+          const valuesArray = [
+            id_test_question,
+            test_id,
+            response_text,
+            response_checkBox.checked ? "true" : "false",
+          ];
+          this.tablesManager.addIntoTable("options", valuesArray);
+        }
+      } else {
+        for (let j = 1; j <= 2; j++) {
+          let valuesArray;
+          const radio_is_checked_true = document.getElementById(`id_true${i}`);
+          const radio_is_checked_false = document.getElementById(
+            `id_false${i}`
+          );
+          switch (true) {
+            case j === 1 && radio_is_checked_true.checked:
+              valuesArray = [id_test_question, test_id, "true", "true"];
+              this.tablesManager.addIntoTable("options", valuesArray);
+              break;
+            case j === 1 && !radio_is_checked_true.checked:
+              valuesArray = [id_test_question, test_id, "true", "false"];
+              this.tablesManager.addIntoTable("options", valuesArray);
+              break;
+            case j === 2 && radio_is_checked_false.checked:
+              valuesArray = [id_test_question, test_id, "false", "true"];
+              this.tablesManager.addIntoTable("options", valuesArray);
+              break;
+            case j === 2 && !radio_is_checked_false.checked:
+              valuesArray = [id_test_question, test_id, "false", "false"];
+              this.tablesManager.addIntoTable("options", valuesArray);
+              break;
+          }
+        }
+      }
+    }
+  }
+
+  getLastRecord(table_name) {
+    const query = `SELECT * FROM ${table_name} ORDER BY id DESC LIMIT 1`;
+    try {
+      const result = this.database.db.exec(query);
+      if (result.length > 0) {
+        return result[0].values[0]; // Повертаємо останній запис
+      } else {
+        console.log("Записи не знайдено.");
+        return null;
+      }
+    } catch (error) {
+      console.error("Помилка виконання запиту:", error);
     }
   }
 }
