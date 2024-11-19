@@ -1,19 +1,37 @@
-let db;
+import {
+  DatabaseManager,
+  TablesManager,
+  QuestionAdder,
+  IntoDBTestAdderChecker,
+} from "./database.js";
+
+let dbManager;
+let questionManager;
+let tablesManager;
 let questionCount = 0;
 let checkForSubmit = 0;
 let checkBoxCount = 1;
 let j = 0;
-const testInfo = getTestData();
+const testInfo = {
+  title: localStorage.getItem("title"),
+};
 let test_id;
 let questionsData;
 
+(async () => {
+  dbManager = new DatabaseManager();
+  await dbManager.init();
+})();
+
 async function executeFunctions() {
-  await initDatabase();
-  test_id = db.exec(`SELECT id FROM tests WHERE user_id = ? AND title = ?`, [
-    getUserData().id,
+  tablesManager = new tablesManager();
+  test_id = tablesManager.getFromTable(2, "id", ["user_id", "title"], "tests", [
+    dbManager.getUserData().id,
     testInfo.title,
   ])[0].values[0][0];
-  questionsData = db.exec(`SELECT * FROM questions WHERE test_id = ${test_id}`);
+  questionsData = tablesManager.getFromTable(1, "*", [test_id], "questions", [
+    test_id,
+  ]);
   const submit_btn = document.getElementById("id_submit_button");
   submit_btn.style.visibility = "visible";
   for (let i = 0; i < questionsData[0].values.length; i++) {
@@ -22,19 +40,36 @@ async function executeFunctions() {
 }
 executeFunctions();
 
+class generateTestFromDB extends QuestionAdder {
+  addQuestionForm(
+    submit_button,
+    questionCount,
+    checkForSubmit,
+    copyData = null
+  ) {
+    super.addQuestionForm(
+      submit_button,
+      questionCount,
+      checkForSubmit,
+      copyData = null
+    );
+    
+  }
+}
+
 function isCheckBoxsEmpty(
   form_of_CheckBox,
   checkboxes,
   is_checkBox_checked,
-  i,
+  i
 ) {
   if (form_of_CheckBox.style.display === "block") {
     for (let j = 1; j <= checkboxes.length; j++) {
       const response_text = document.getElementById(
-        `multipleChoiceText${i}${j}[]`,
+        `multipleChoiceText${i}${j}[]`
       );
       const response_checkBox = document.getElementById(
-        `multipleChoice${i}${j}[]`,
+        `multipleChoice${i}${j}[]`
       );
       if (!response_text.value) {
         highlightElement(response_text);
@@ -57,7 +92,7 @@ function isCheckBoxsEmpty(
 export function sendTestIntoDB() {
   const testName = document.getElementById("id_input_test_name");
   const stmtTitleTest = db.prepare(
-    "SELECT 1 FROM tests WHERE title = ? AND user_id = ?",
+    "SELECT 1 FROM tests WHERE title = ? AND user_id = ?"
   );
   stmtTitleTest.bind([testName.value, getUserData().id]); // Передаємо параметри без вкладеного масиву
   const TitleTestExists = stmtTitleTest.step();
@@ -73,17 +108,17 @@ export function sendTestIntoDB() {
     }
     const scoreName = document.getElementById(`score${i}`);
     const form_checkBox = document.querySelector(
-      `#id-div-multiple-choice-options${i}`,
+      `#id-div-multiple-choice-options${i}`
     );
     const checkboxes = form_checkBox.querySelectorAll('input[type="checkbox"]');
     const form_of_CheckBox = document.getElementById(
-      `id-div-multiple-choice-options${i}`,
+      `id-div-multiple-choice-options${i}`
     );
     is_checkBox_checked = isCheckBoxsEmpty(
       form_of_CheckBox,
       checkboxes,
       is_checkBox_checked,
-      i,
+      i
     );
     switch (true) {
       case !testName.value:
@@ -108,7 +143,7 @@ export function sendTestIntoDB() {
   const endTime = document.getElementById("test-datetime-end");
   db.run(
     "INSERT INTO tests (user_id, title, time_of_starting, time_of_ending) VALUES (?, ?, ?, ?)",
-    [userData.id, testName.value, startTime.value, endTime.value],
+    [userData.id, testName.value, startTime.value, endTime.value]
   );
   addTest();
   saveDatabase();
@@ -143,30 +178,30 @@ function addTest() {
     let response_type;
     const rating = document.getElementById(`score${i}`).value;
     const selectorOptions = document.getElementById(
-      `id-div-multiple-choice-options${i}`,
+      `id-div-multiple-choice-options${i}`
     );
     response_type =
       selectorOptions.style.display === "block" ? "multiple" : "true/false";
     db.run(
       "INSERT INTO questions (test_id, text, response_type, rating) VALUES (?, ?, ?, ?)",
-      [test_id, text_question.value, response_type, rating],
+      [test_id, text_question.value, response_type, rating]
     );
 
     const id_test_question = getLastRecord("questions")[0];
     const form_checkBox = document.querySelector(
-      `#id-div-multiple-choice-options${i}`,
+      `#id-div-multiple-choice-options${i}`
     );
     const checkboxes = form_checkBox.querySelectorAll('input[type="checkbox"]');
     const form_of_CheckBox = document.getElementById(
-      `id-div-multiple-choice-options${i}`,
+      `id-div-multiple-choice-options${i}`
     );
     if (form_of_CheckBox.style.display === "block") {
       for (let j = 1; j <= checkboxes.length; j++) {
         const response_text = document.getElementById(
-          `multipleChoiceText${i}${j}[]`,
+          `multipleChoiceText${i}${j}[]`
         ).value;
         const response_checkBox = document.getElementById(
-          `multipleChoice${i}${j}[]`,
+          `multipleChoice${i}${j}[]`
         );
         db.run(
           "INSERT INTO options (question_id, test_id, text, is_correct) VALUES (?, ?, ?, ?)",
@@ -175,7 +210,7 @@ function addTest() {
             test_id,
             response_text,
             response_checkBox.checked ? "true" : "false",
-          ],
+          ]
         );
       }
     } else {
@@ -186,25 +221,25 @@ function addTest() {
           case j === 1 && radio_is_checked_true.checked:
             db.run(
               "INSERT INTO options (question_id, test_id, text, is_correct) VALUES (?, ?, ?, ?)",
-              [id_test_question, test_id, "true", "true"],
+              [id_test_question, test_id, "true", "true"]
             );
             break;
           case j === 1 && !radio_is_checked_true.checked:
             db.run(
               "INSERT INTO options (question_id, test_id,  text, is_correct) VALUES (?, ?, ?, ?)",
-              [id_test_question, test_id, "true", "false"],
+              [id_test_question, test_id, "true", "false"]
             );
             break;
           case j === 2 && radio_is_checked_false.checked:
             db.run(
               "INSERT INTO options (question_id, test_id, text, is_correct) VALUES (?, ?, ?, ?)",
-              [id_test_question, test_id, "false", "true"],
+              [id_test_question, test_id, "false", "true"]
             );
             break;
           case j === 2 && !radio_is_checked_false.checked:
             db.run(
               "INSERT INTO options (question_id, test_id, text, is_correct) VALUES (?, ?, ?, ?)",
-              [id_test_question, test_id, "false", "false"],
+              [id_test_question, test_id, "false", "false"]
             );
             break;
         }
@@ -230,7 +265,7 @@ function getLastRecord(table_name) {
 
 async function generateTest(i) {
   const optionData = db.exec(
-    `SELECT * FROM options WHERE question_id = ${questionsData[0].values[i][0]}`,
+    `SELECT * FROM options WHERE question_id = ${questionsData[0].values[i][0]}`
   );
   const container = document.getElementById("questionsContainer");
   const title_test = document.getElementById("id_input_test_name");
@@ -282,7 +317,7 @@ async function generateTest(i) {
   const multipleChoiceOptions = document.createElement("div");
   multipleChoiceOptions.classList.add(
     "options-container",
-    "multiple-choice-options",
+    "multiple-choice-options"
   );
   multipleChoiceOptions.id = `id-div-multiple-choice-options${questionCount}`;
   const id_checkBox_Fectch = questionCount;
@@ -291,7 +326,7 @@ async function generateTest(i) {
   addOptionButton.textContent = "Add option";
   addOptionButton.onclick = () => {
     const form_checkBox = document.querySelector(
-      `#id-div-multiple-choice-options${id_checkBox_Fectch}`,
+      `#id-div-multiple-choice-options${id_checkBox_Fectch}`
     );
     let checkboxes =
       form_checkBox.querySelectorAll('input[type="checkbox"]').length + 1;
@@ -319,7 +354,7 @@ async function generateTest(i) {
       addCheckboxOption(
         id_checkBox_Fectch,
         multipleChoiceOptions,
-        checkBoxCount++,
+        checkBoxCount++
       );
       multipleChoiceOptions.appendChild(addOptionButton);
       questionForm.appendChild(trueFalseOptions);
@@ -337,7 +372,7 @@ async function generateTest(i) {
           multipleChoiceOptions,
           optionData[0].values[j][3],
           checkBoxCount++,
-          optionData[0].values.length,
+          optionData[0].values.length
         );
       }
       multipleChoiceOptions.appendChild(addOptionButton);
@@ -386,14 +421,14 @@ async function generateTest(i) {
     };
     if (typeSelect.value === "multipleChoice") {
       const form_checkBox = document.querySelector(
-        `#id-div-multiple-choice-options${count}`,
+        `#id-div-multiple-choice-options${count}`
       );
       const checkboxes = form_checkBox.querySelectorAll(
-        'input[type="checkbox"]',
+        'input[type="checkbox"]'
       );
       for (k = 1; k <= checkboxes.length; k++) {
         const optionInput = document.getElementById(
-          `multipleChoiceText${count}${k}[]`,
+          `multipleChoiceText${count}${k}[]`
         );
         questionData.options.push(optionInput.value);
         if (optionInput.checked) {
@@ -469,7 +504,7 @@ function addQuestionForm(copyData = null) {
   const multipleChoiceOptions = document.createElement("div");
   multipleChoiceOptions.classList.add(
     "options-container",
-    "multiple-choice-options",
+    "multiple-choice-options"
   );
   multipleChoiceOptions.id = `id-div-multiple-choice-options${questionCount}`;
   multipleChoiceOptions.style.display = "none";
@@ -481,7 +516,7 @@ function addQuestionForm(copyData = null) {
         multipleChoiceOptions,
         checkBoxCount++,
         copyData.options[i],
-        copyData.is_checked[i],
+        copyData.is_checked[i]
       );
     }
     // copyData.options.forEach(option => addCheckboxOption(id_checkBox_Fectch, multipleChoiceOptions, checkBoxCount++,  option, copyData.is_checked));
@@ -489,7 +524,7 @@ function addQuestionForm(copyData = null) {
     addCheckboxOption(
       id_checkBox_Fectch,
       multipleChoiceOptions,
-      checkBoxCount++,
+      checkBoxCount++
     );
   }
   const addOptionButton = document.createElement("button");
@@ -499,7 +534,7 @@ function addQuestionForm(copyData = null) {
     addCheckboxOption(
       id_checkBox_Fectch,
       multipleChoiceOptions,
-      checkBoxCount++,
+      checkBoxCount++
     );
   };
   multipleChoiceOptions.appendChild(addOptionButton);
@@ -545,13 +580,13 @@ function addQuestionForm(copyData = null) {
     };
     if (typeSelect.value === "multipleChoice") {
       const getMultipleElement = document.getElementById(
-        `id-div-multiple-choice-options${copyCount}`,
+        `id-div-multiple-choice-options${copyCount}`
       );
       const copyCheckBoxCount =
         getMultipleElement.querySelectorAll("[type='checkbox']");
       for (i = 1; i <= copyCheckBoxCount.length; i++) {
         const optionInput = document.getElementById(
-          `multipleChoiceText${copyCount}${i}[]`,
+          `multipleChoiceText${copyCount}${i}[]`
         );
         questionData.options.push(optionInput.value);
         if (optionInput.checked) {
@@ -591,7 +626,7 @@ function addCheckboxOption(
   container,
   k,
   optionText = "",
-  is_checkBox_checked,
+  is_checkBox_checked
 ) {
   console.log(k);
   const optionDiv = document.createElement("div");
@@ -615,7 +650,7 @@ function addCheckboxOption(
   deleteButton.textContent = "❌"; // Хрестик для видалення
   deleteButton.onclick = () => {
     const formCheckBoxs = document.getElementById(
-      `id-div-multiple-choice-options${id_checkBox_Fectch}`,
+      `id-div-multiple-choice-options${id_checkBox_Fectch}`
     );
     const amountOfCheckBoxs =
       formCheckBoxs.querySelectorAll('[type="checkbox"]');
@@ -628,11 +663,11 @@ function addCheckboxOption(
       j++;
       console.log(id_checkBox_Fectch, idForChange);
       const amountOfCheckBoxsText = document.getElementById(
-        `multipleChoiceText${id_checkBox_Fectch}${j}[]`,
+        `multipleChoiceText${id_checkBox_Fectch}${j}[]`
       );
       amountOfCheckBoxsText.id = `multipleChoiceText${id_checkBox_Fectch}${i}[]`;
       const amountOfCheckBoxs = document.getElementById(
-        `multipleChoice${id_checkBox_Fectch}${j}[]`,
+        `multipleChoice${id_checkBox_Fectch}${j}[]`
       );
       amountOfCheckBoxs.id = `multipleChoice${id_checkBox_Fectch}${i}[]`;
     }
@@ -661,12 +696,12 @@ function findCheckboxOption(
   optionDataText,
   k,
   maxK,
-  optionText = "",
+  optionText = ""
 ) {
   const question_id = id_checkBox_Fectch - 1;
   const checkedOption = db.exec(
     "SELECT is_correct FROM options WHERE question_id = ?",
-    [questionsData[0].values[question_id][0]],
+    [questionsData[0].values[question_id][0]]
   );
   console.log(checkedOption);
   const optionDiv = document.createElement("div");
@@ -690,7 +725,7 @@ function findCheckboxOption(
   deleteButton.textContent = "❌"; // Хрестик для видалення
   deleteButton.onclick = () => {
     const formCheckBoxs = document.getElementById(
-      `id-div-multiple-choice-options${id_checkBox_Fectch}`,
+      `id-div-multiple-choice-options${id_checkBox_Fectch}`
     );
     const amountOfCheckBoxs =
       formCheckBoxs.querySelectorAll('[type="checkbox"]');
@@ -703,11 +738,11 @@ function findCheckboxOption(
       j++;
       console.log(id_checkBox_Fectch, idForChange);
       const amountOfCheckBoxsText = document.getElementById(
-        `multipleChoiceText${id_checkBox_Fectch}${j}[]`,
+        `multipleChoiceText${id_checkBox_Fectch}${j}[]`
       );
       amountOfCheckBoxsText.id = `multipleChoiceText${id_checkBox_Fectch}${i}[]`;
       const amountOfCheckBoxs = document.getElementById(
-        `multipleChoice${id_checkBox_Fectch}${j}[]`,
+        `multipleChoice${id_checkBox_Fectch}${j}[]`
       );
       amountOfCheckBoxs.id = `multipleChoice${id_checkBox_Fectch}${i}[]`;
     }
@@ -744,7 +779,7 @@ function clearTestData() {
 function toggleOptions(selectElement, questionForm) {
   const trueFalseOptions = questionForm.querySelector(".true-false-options");
   const multipleChoiceOptions = questionForm.querySelector(
-    ".multiple-choice-options",
+    ".multiple-choice-options"
   );
   if (selectElement.value === "trueFalse") {
     trueFalseOptions.style.display = "flex";
@@ -753,10 +788,4 @@ function toggleOptions(selectElement, questionForm) {
     trueFalseOptions.style.display = "none";
     multipleChoiceOptions.style.display = "block";
   }
-}
-
-function getTestData() {
-  return {
-    title: localStorage.getItem("title"),
-  };
 }

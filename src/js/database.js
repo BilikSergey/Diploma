@@ -204,10 +204,7 @@ export class TablesManager {
     this.tableColumnsStringQuestions = "test_id, text, response_type, rating";
     this.tableColumnsStringOptions = "question_id, test_id, text, is_correct";
 
-    this.tableQuestionMarkStringUsers = "?, ?, ?, ?";
-    this.tableQuestionMarkStringTests = "?, ?, ?, ?";
-    this.tableQuestionMarkStringQuestions = "?, ?, ?, ?";
-    this.tableQuestionMarkStringOptions = "?, ?, ?, ?";
+    this.tableQuestionFourMarkString = "?, ?, ?, ?";
   }
 
   addIntoTable(checkingTableName, valuesArray) {
@@ -218,28 +215,37 @@ export class TablesManager {
       case checkingTableName === "users":
         tableName = "users";
         columnsString = this.tableColumnsStringUsers;
-        questionMarkString = this.tableQuestionMarkStringUsers;
+        questionMarkString = this.tableQuestionFourMarkString;
         break;
       case checkingTableName === "tests":
         tableName = "tests";
         columnsString = this.tableColumnsStringTests;
-        questionMarkString = this.tableQuestionMarkStringTests;
+        questionMarkString = this.tableQuestionFourMarkString;
         break;
       case checkingTableName === "questions":
         tableName = "questions";
         columnsString = this.tableColumnsStringQuestions;
-        questionMarkString = this.tableQuestionMarkStringQuestions;
+        questionMarkString = this.tableQuestionFourMarkString;
         break;
       case checkingTableName === "options":
         tableName = "options";
         columnsString = this.tableColumnsStringOptions;
-        questionMarkString = this.tableQuestionMarkStringOptions;
+        questionMarkString = this.tableQuestionFourMarkString;
         break;
     }
     this.database.db.run(
       `INSERT INTO ${tableName} (${columnsString}) VALUES (${questionMarkString})`,
       valuesArray
     );
+  }
+
+  getFromTable(quantityColumnForSearch, valueToGet, arrayOfColumnForSearch, checkingTableName, valuesArray) {
+    switch(true){
+      case(quantityColumnForSearch===1):
+      return this.database.db.exec(`SELECT ${valueToGet} FROM ${checkingTableName} WHERE ${arrayOfColumnForSearch} = ?`, [valuesArray]);
+      case(quantityColumnForSearch===2):
+      return this.database.db.exec(`SELECT ${valueToGet} FROM ${checkingTableName} WHERE ${arrayOfColumnForSearch[0]} = ? AND ${arrayOfColumnForSearch[1]} = ?`, [valuesArray]);
+    }
   }
 
   deleteUserById(tableName, columnId) {
