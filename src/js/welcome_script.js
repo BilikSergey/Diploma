@@ -66,34 +66,36 @@ function showAuthForm() {
       event.preventDefault();
       showRegisterForm();
     });
-  document.getElementById("id_login_button").addEventListener("click", async () => {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    const hashedPassword = await hashPassword(password);
-    const user = findUserByEmail(email);
-    switch (true) {
-      case email === "":
-        showErrorMessage("Field 'Email' cannot be empty");
-        break;
-      case user.length === [].length:
-        showErrorMessage("User with this email didn't register");
-        break;
-      case password === "":
-        showErrorMessage("Field 'password' cannot be empty");
-        break;
-      case user && hashedPassword !== user[3]:
-        showErrorMessage("Password is not correct");
-        break;
-      case user[4] === "student" && hashedPassword === user[3]:
-        saveUserData(user);
-        window.location.href = "cabinet_student.html";
-        break;
-      case user[4] === "teacher" && hashedPassword === user[3]:
-        saveUserData(user);
-        window.location.href = "cabinet_teacher.html";
-        break;
-    }
-  });
+  document
+    .getElementById("id_login_button")
+    .addEventListener("click", async () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const hashedPassword = await hashPassword(password);
+      const user = findUserByEmail(email);
+      switch (true) {
+        case email === "":
+          showErrorMessage("Field 'Email' cannot be empty");
+          break;
+        case user.length === [].length:
+          showErrorMessage("User with this email didn't register");
+          break;
+        case password === "":
+          showErrorMessage("Field 'password' cannot be empty");
+          break;
+        case user && hashedPassword !== user[3]:
+          showErrorMessage("Password is not correct");
+          break;
+        case user[4] === "student" && hashedPassword === user[3]:
+          saveUserData(user);
+          window.location.href = "cabinet_student.html";
+          break;
+        case user[4] === "teacher" && hashedPassword === user[3]:
+          saveUserData(user);
+          window.location.href = "cabinet_teacher.html";
+          break;
+      }
+    });
 }
 
 // Функція для відображення форми реєстрації

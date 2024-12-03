@@ -504,4 +504,3 @@ function sortForms(sortType) {
 function goBack() {
   window.history.back();
 }
-
