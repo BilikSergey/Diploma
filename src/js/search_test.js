@@ -1,9 +1,9 @@
 let db;
 let queryCount = 0;
-// let sortOrder = {
-//   time: true,
-//   title: true,
-// };
+let sortOrder = {
+  time: true,
+  title: true,
+};
 // eslint-disable-next-line no-undef
 initDatabase();
 
