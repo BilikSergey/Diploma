@@ -12,15 +12,9 @@
       <div class="button-group">
         <button
           class="dashboard-btn"
-          onclick="location.href='create_test.html'"
+          onclick="location.href='search_test.html'"
         >
-          Create Test
-        </button>
-        <button
-          class="dashboard-btn"
-          onclick="location.href='teacher_view_tests.html'"
-        >
-          View Tests
+          Search
         </button>
         <button
           class="dashboard-btn"
@@ -28,10 +22,7 @@
         >
           View Results
         </button>
-        <button class="dashboard-btn" onclick="location.href='settings.html'">
-          Settings
-        </button>
-        <button id="id_exit_button" class="dashboard-btn" onclick="location.href='index.html'">
+        <button id="id_exit_button" class="dashboard-btn" onclick="">
           Sign out
         </button>
       </div>
@@ -40,8 +31,8 @@
     <script>
       const currentObj = getUserData().role;
       document.addEventListener("DOMContentLoaded", function () {
-        if (currentObj !== "teacher") {
-          window.location.href = "index.html";
+        if (currentObj !== "student") {
+          window.location.href = "/index.html";
         }
       });
       document

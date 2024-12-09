@@ -9,9 +9,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Налаштування статичних файлів
-app.use(express.static(path.join(__dirname, "src")));
+app.use(express.static(path.join(__dirname, "public")));
 
-// Головна сторінка
+// Явний маршрут для index.html
+app.get("/index.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
+// Маршрут для головної сторінки
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });

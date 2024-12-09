@@ -88,11 +88,11 @@ function showAuthForm() {
           break;
         case user[4] === "student" && hashedPassword === user[3]:
           saveUserData(user);
-          window.location.href = "cabinet_student.html";
+          window.location.href = "/cabinet_student.html";
           break;
         case user[4] === "teacher" && hashedPassword === user[3]:
           saveUserData(user);
-          window.location.href = "cabinet_teacher.html";
+          window.location.href = "/cabinet_teacher.html";
           break;
       }
     });
